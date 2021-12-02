@@ -1,0 +1,16 @@
+{% extends 'camaras/layout.html' %}
+
+{% block title %}
+Bienvenido
+{% endblock %}
+
+{% block body %}
+    Bienvenido a la aplicacion
+    {% if user.is_authenticated %}
+        Hola <!--Info del usuario-->
+        <a href="{% url 'camaras:logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'camaras:login' %}">Iniciar sesión</a>
+        <a href="{% url 'camaras:registro' %}">Registrarse</a>
+    {% endif %}
+{% endblock %}

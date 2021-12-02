@@ -1,0 +1,13 @@
+{% extends 'camaras/layout.html' %}
+
+{% block title %}
+Registrarse
+{% endblock %}
+
+{% block body %}
+    <form method="post" action="{% url 'camaras:registro' %}">
+        {% csrf_token %}
+        {{ register_form.as_p }}
+        <input type="submit" name="registro" value="Registrarse">
+    </form>
+{% endblock %}

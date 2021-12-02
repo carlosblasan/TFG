@@ -1,0 +1,13 @@
+{% extends 'camaras/layout.html' %}
+
+{% block title %}
+Iniciar sesión
+{% endblock %}
+
+{% block body %}
+    <form method="post" action="{% url 'camaras:login' %}">
+        {% csrf_token %}
+        {{ login_form.as_p }}
+        <input type="submit" name="login" value="Iniciar sesión">
+    </form>
+{% endblock %}
