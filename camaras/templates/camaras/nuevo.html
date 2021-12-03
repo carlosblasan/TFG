@@ -1,0 +1,13 @@
+{% extends 'camaras/layout.html' %}
+{% load static %}
+{% block title %}
+Crear nuevo mapa
+
+{% endblock %}
+
+{% block body %}
+<div id='map' style='width: 650px; height: 450px;'></div>
+<div id='info' style="width:20px;height:20px;"></div>
+<button onclick="colocaCamara()">Colocar camara</button>
+<button onclick="colocaEdificio()">Colocar edificio</button>
+{% endblock %}

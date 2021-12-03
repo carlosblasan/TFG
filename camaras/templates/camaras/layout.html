@@ -1,9 +1,27 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
     <head>
         <title>Camera App - {% block title %}{% endblock %}</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+        <!-- jQuery library -->
+        <script src="{% static 'jquery.min.js' %}"></script>
+        <!-- Latest compiled JavaScript -->
+        <script src="{% static 'bootstrap.min.js' %}"></script>
+        <script src="{% static 'mapbox-gl.js' %}"></script>
+        <link href="{% static 'mapbox-gl.css' %}" rel='stylesheet'/>
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.3.0/mapbox-gl-geocoder.min.js'></script>
+<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.3.0/mapbox-gl-geocoder.css' type='text/css' />
     </head>
     <body>
+        <h1>Camaras de seguridad</h1>
+        
+
+        {% block menu %}{% endblock %}
         {% block body %}{% endblock %}
+        <script src="{% static 'scripts/maps.js' %}"></script>
     </body>
 </html>
+
