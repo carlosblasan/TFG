@@ -1,6 +1,7 @@
 __pycache__
 migrations
 db.sqlite3
+cam
 # Prerequisites
 *.d
 

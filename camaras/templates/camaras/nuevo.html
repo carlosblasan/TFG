@@ -6,8 +6,66 @@ Crear nuevo mapa
 {% endblock %}
 
 {% block body %}
-<div id='map' style='width: 650px; height: 450px;'></div>
-<div id='info' style="width:20px;height:20px;"></div>
-<button onclick="colocaCamara()">Colocar camara</button>
-<button onclick="colocaEdificio()">Colocar edificio</button>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'camaras:index' %}">Home</a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                  <li class="nav-item">
+                    <a id="estilo_mapa" class="nav-link active" aria-current="page">Vista de satélite</a>
+                  </li>
+                  
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      Selecciona una cámara
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        {% for k,v in camaras.items %}
+                            <li><h6 class="dropdown-header">{{ k }}mm</h6></li>
+                            {% for e in v %}
+                                <li id="camara_{{ e.id }}"><a class="dropdown-item" href="#" onclick="colocaCamara({{ e.id }})">{{ e }}</a></li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                  </li>
+                  <li class="nav-item">
+                    <form method="POST" action="{% url 'camaras:nuevo' %}">
+                        {% csrf_token %}
+                        
+                        <input onclick='enviaVariable()' class="btn btn-primary" type="submit" value="Guardar mapa"/>
+                    </form>
+                  </li>
+                </ul>
+                  
+                
+              </div>
+            </div>
+            <div id="logout" class="collapse navbar-collapse justify-content-end">
+                <span class="navbar-text">
+                  <a class="nav-link active" aria-current="page" href="{% url 'camaras:logout' %}">Logout</a>
+                </span>
+              </div>
+        </nav>
+
+        
+    <div class="row">
+        <div id="lateral" class="col-xl-2">
+            <div id="editar">
+                Editar cámara <span id="nombre_camara"></span><br/>
+                <ul>
+                    <li>Distancia focal: <span id="dist_focal"></span>mm</li>
+                    <li>Ángulo de apertura: <span id="angulo"></span>º</li>
+                    <li><label for="altura" class="form-label">Altura de la cámara</label>
+                        <input type="range" class="form-range" step="1" id="altura" oninput="slide(this.value)">"</li>
+                </ul>
+
+            </div>
+        </div>
+        <div class="col-xl-8">
+            <div id='map'></div>
+            <div id='info'></div>
+        </div>
+    </div>
+
 {% endblock %}

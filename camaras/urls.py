@@ -9,5 +9,6 @@ urlpatterns = [
     path('logout', views.logout_view, name='logout'),
     path('nuevo', views.nuevo, name="nuevo"),
     path('mapas', views.mapas, name="mapas"),
-
+    path('nuevacamara', views.nuevacamara, name="nuevacamara"),
+    path('camaras/<int:camara_id>', views.camaras, name="camaras"),
 ]

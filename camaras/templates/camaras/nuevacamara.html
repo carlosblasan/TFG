@@ -1,0 +1,14 @@
+{% extends 'camaras/layout.html' %}
+
+{% block title %}
+Nueva cámara
+{% endblock %}
+
+{% block body %}
+<form method="post" action="{% url 'camaras:nuevacamara' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" name="guardar" value="Guardar cámara">
+</form>
+
+{% endblock %}

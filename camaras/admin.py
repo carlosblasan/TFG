@@ -3,3 +3,6 @@ from .models import *
 
 # Register your models here.
 admin.site.register(Usuario)
+admin.site.register(Mapa)
+admin.site.register(Camara)
+admin.site.register(Punto)
