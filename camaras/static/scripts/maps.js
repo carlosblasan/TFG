@@ -21,6 +21,7 @@ let inclinacion = 70
 let altura = 4
 let cameramarker = null
 let datos_mapa = null
+let estilo = true
 // Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
 // y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
 // con centro la ubicacion de la camara
@@ -331,15 +332,17 @@ const map_init = ubicacion => {
         map.setCenter([ubicacion.coords.longitude, ubicacion.coords.latitude])
         map.setZoom(18)
     }
-    document.getElementById("estilo_mapa").onclick = function(){   
-        text = document.getElementById("estilo_mapa").innerHTML
-        if(text.search("sat")>=0) {
-            document.getElementById("estilo_mapa").innerHTML = "Vista de mapa"
-            map.setStyle('mapbox://styles/mapbox/satellite-v9');
-            
-        } else {
-            document.getElementById("estilo_mapa").innerHTML = "Vista de satélite"
-            map.setStyle('mapbox://styles/mapbox/streets-v11');
+    if(estilo) {
+        document.getElementById("estilo_mapa").onclick = function(){   
+            text = document.getElementById("estilo_mapa").innerHTML
+            if(text.search("sat")>=0) {
+                document.getElementById("estilo_mapa").innerHTML = "Vista de mapa"
+                map.setStyle('mapbox://styles/mapbox/satellite-v9');
+                
+            } else {
+                document.getElementById("estilo_mapa").innerHTML = "Vista de satélite"
+                map.setStyle('mapbox://styles/mapbox/streets-v11');
+            }
         }
     }
     map.addControl(new MapboxGeocoder({
@@ -356,6 +359,9 @@ const map_init = ubicacion => {
         
         document.getElementById('map').onclick = function() {
             if(camara){
+                estilo = false
+                document.getElementById("estilo_mapa").onclick = function(){void(0)}
+                document.getElementById("estilo_mapa").style.color = "#E5E6FF"
                 longlat = e.lngLat.wrap()
                 crea_camara(map,longlat,false)
                 
