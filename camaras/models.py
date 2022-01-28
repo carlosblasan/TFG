@@ -26,25 +26,33 @@ class Camara(models.Model):
         ("1/1.6", "8.08x6.01"),
     )
     nombre = models.CharField(max_length=128)
-    colocada = models.IntegerField(default=0)
     # tipo = models.CharField(max_length=128)
     distancia_focal = models.IntegerField(default=0)
-    resolucion = models.CharField(max_length=20, choices=RESOLUCIONES, default="HD")
+    resolucion = models.CharField(max_length=20,
+                                  choices=RESOLUCIONES,
+                                  default="HD")
     sensor = models.CharField(max_length=20, choices=SENSOR, default="1/3")
-    inclinacion = models.IntegerField(default=70)
-    altura = models.IntegerField(default=4)
 
     def __str__(self):
         return f"Cámara {self.nombre}. Dist. focal {self.distancia_focal} mm."
 
 
 class Mapa(models.Model):
+    nombre = models.CharField(max_length=128)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    camaras = models.ManyToManyField(Camara, related_name="mapa")
+
+    class Meta:
+        unique_together = ('nombre', 'usuario',)
 
 
-class Punto(models.Model):
+class Colocada(models.Model):
     mapa = models.ForeignKey(Mapa, on_delete=models.CASCADE)
-    x_coord = models.DecimalField(decimal_places=2, max_digits=5)
-    y_coord = models.DecimalField(decimal_places=2, max_digits=5)
-    es_camara = models.BooleanField()  # Si es camara o si es edificio
+    camara = models.ForeignKey(Camara, on_delete=models.CASCADE)
+    angulo = models.DecimalField(default=45, decimal_places=10, max_digits=15)
+    inclinacion = models.IntegerField(default=70)
+    altura = models.IntegerField(default=4)
+    rotacion = models.IntegerField(default=0)
+    dmax = models.IntegerField(default=10)
+    dmuerta = models.IntegerField(default=0)
+    x_coord = models.DecimalField(decimal_places=10, max_digits=15)
+    y_coord = models.DecimalField(decimal_places=10, max_digits=15)

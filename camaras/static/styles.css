@@ -33,3 +33,7 @@ body{
 .marker {
   background-image: url("images/cam_icon.jpg");
 }
+
+.dropdown-item {
+  cursor: pointer;
+}

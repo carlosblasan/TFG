@@ -11,4 +11,6 @@ urlpatterns = [
     path('mapas', views.mapas, name="mapas"),
     path('nuevacamara', views.nuevacamara, name="nuevacamara"),
     path('camaras/<int:camara_id>', views.camaras, name="camaras"),
+    path('editarmapa/<int:mapa_id>', views.editarmapa, name="editarmapa"),
+    path('editar/<int:mapa_id>', views.editar, name="editar"),
 ]

@@ -1,14 +1,12 @@
+import json
 from django.http.response import HttpResponseNotFound
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from .forms import LoginForm, RegisterForm, CameraForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Mapa, Punto, Camara
-import json
+from .models import Colocada, Mapa, Camara
 from django.http import JsonResponse
-from django.core.serializers import serialize
-from django.db.models.query import QuerySet
 
 
 def index(request):
@@ -127,25 +125,44 @@ def nuevo(request):
             dist.add(c.distancia_focal)
         for d in dist:
             camaras[d] = list(Camara.objects.filter(distancia_focal=d))
-        print(camaras)
         return render(request, "camaras/nuevo.html", {
             "camaras": camaras
         })
     elif request.method == 'POST':
-        # TODO: Guardar los puntos y el mapa en la base de datos
-        # data = json.loads(request.body)
-        print(request.body)
-        for e in request.body:
-            coordenadas = e['geometry']['coordinates']
-            p = Punto()
-            p.x_coord = coordenadas[0]
-            p.y_coord = coordenadas[1]
-            if e['type'] == "Camara":
-                p.es_camara = True
+        coordenadas = {}
+        posiciones_camaras_id = []
+        data = json.loads(request.body)
+        puntos = data['content']
+        print(puntos)
+        try:
+            map = Mapa.objects.get(nombre=data['nombre'], usuario=request.user)
+        except Mapa.DoesNotExist:
+            map = Mapa(nombre=data['nombre'], usuario=request.user)
+            map.save()
+        for e in puntos.keys():
+            info = json.loads(puntos[e])
+            if 'posicion' in info.keys():
+                posiciones_camaras_id.append(e.split('_')[1])
+                coordenadas[e.split('_')[1]] = info['posicion']
             else:
-                p.es_camara = False
-            # p.mapa = m
-            p.save()
+                pos = posiciones_camaras_id.pop()
+                camara_id = int(pos.split('-')[0])
+                cam = Camara.objects.get(id=camara_id)
+                info = json.loads(puntos[e])
+                angulo = info['angulo']
+                altura = info['altura']
+                inclinacion = info['inclinacion']
+                rotacion = info['rotacion']
+                dmax = info['dmax']
+                dmuerta = info['dmuerta']
+                c = Colocada(camara=cam, angulo=angulo, altura=altura,
+                             inclinacion=inclinacion, rotacion=rotacion,
+                             dmax=dmax, dmuerta=dmuerta,
+                             x_coord=coordenadas[e]['lng'],
+                             y_coord=coordenadas[e]['lat'], mapa=map)
+                print(c)
+                c.save()
+        return redirect(reverse('camaras:mapas'))
 
 
 @login_required
@@ -158,17 +175,63 @@ def mapas(request):
         # Se obtienen todos los mapas que ha creado el usuario
         mapas = Mapa.objects.filter(usuario=request.user)
         return render(request, "camaras/mapas.html", {
-            "mapas": mapas
+            "lista_mapas": mapas
         })
 
 
 def camaras(request, camara_id):
     camara = Camara.objects.get(id=camara_id)
-    
-    return JsonResponse({"nombre": camara.nombre,
-                         "resolucion": camara.resolucion,
-                         "distancia_focal": camara.distancia_focal,
-                         "sensor": camara.get_sensor_display(),
-                         "inclinacion": camara.inclinacion,
-                         "altura": camara.altura
-                         }, status=201)
+    return JsonResponse({
+        "id": camara.id,
+        "nombre": camara.nombre,
+        "resolucion": camara.resolucion,
+        "distancia_focal": camara.distancia_focal,
+        "sensor": camara.get_sensor_display(),
+        "inclinacion": 70,
+        "altura": 4,
+        "rotacion": 0
+    }, status=201)
+
+
+def editarmapa(request, mapa_id):
+    if request.method == 'GET':
+        lista_camaras = Camara.objects.all()
+        dist = set()
+        camaras = dict()
+        for c in lista_camaras:
+            dist.add(c.distancia_focal)
+        for d in dist:
+            camaras[d] = list(Camara.objects.filter(distancia_focal=d))
+        return render(request, "camaras/nuevo.html", {
+            "nombre": Mapa.objects.get(id=mapa_id).nombre,
+            "mapa": mapa_id,
+            "camaras": camaras
+        })
+
+
+def editar(request, mapa_id):
+    if request.method == 'GET':
+        camaras = []
+        mapa = Mapa.objects.get(id=mapa_id)
+        c = Colocada.objects.filter(mapa=mapa)
+        centro = [sum(punto.x_coord for punto in c)/c.count(),
+                  sum(punto.y_coord for punto in c)/c.count()]
+        for e in c:
+            cam = Camara.objects.get(id=e.camara.id)
+            camaras.append({
+                "posicion": {"lng": e.x_coord, "lat": e.y_coord},
+                "camara_id": cam.id,
+                "colocada": e.id,
+                "distancia_focal": cam.distancia_focal,
+                "nombre_camara": cam.nombre,
+                "angulo": e.angulo,
+                "inclinacion": e.inclinacion,
+                "rotacion": e.rotacion,
+                "altura": e.altura,
+                "dmax": e.dmax,
+                "dmuerta": e.dmuerta
+                })
+        return JsonResponse({
+            "centro": centro,
+            "camaras": camaras
+        }, status=200)

@@ -1,5 +1,13 @@
 {% extends 'camaras/layout.html' %}
-
+{% load static %}
 {% block title %}
 Mis mapas
+{% endblock %}
+
+{% block body %}
+
+    {% for e in lista_mapas %}
+        <a onclick="cargamapa({{e.id}})" href="{% url 'camaras:editarmapa' e.id %}">{{e.nombre}}</a>
+    {% endfor %}
+
 {% endblock %}

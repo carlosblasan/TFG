@@ -6,7 +6,7 @@ Crear nuevo mapa
 {% endblock %}
 
 {% block body %}
-
+    <p id="edit_mapa_id" hidden>{{mapa}}</p>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'camaras:index' %}">Home</a>
@@ -24,17 +24,16 @@ Crear nuevo mapa
                         {% for k,v in camaras.items %}
                             <li><h6 class="dropdown-header">{{ k }}mm</h6></li>
                             {% for e in v %}
-                                <li id="camara_{{ e.id }}"><a class="dropdown-item" href="#" onclick="colocaCamara({{ e.id }})">{{ e }}</a></li>
+                                <li id="camara_{{ e.id }}"><a class="dropdown-item" onclick="colocaCamara({{ e.id }})">{{ e }}</a></li>
                             {% endfor %}
                         {% endfor %}
                     </ul>
                   </li>
                   <li class="nav-item">
-                    <form method="POST" action="{% url 'camaras:nuevo' %}">
-                        {% csrf_token %}
+                    
                         
-                        <input onclick='enviaVariable()' class="btn btn-primary" type="submit" value="Guardar mapa"/>
-                    </form>
+                        <button onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>
+                    
                   </li>
                 </ul>
                   
@@ -56,13 +55,22 @@ Crear nuevo mapa
                 <ul>
                     <li>Distancia focal: <span id="dist_focal"></span>mm</li>
                     <li>Ángulo de apertura: <span id="angulo"></span>º</li>
-                    <li><label for="altura" class="form-label">Altura de la cámara</label>
-                        <input type="range" class="form-range" step="1" id="altura" oninput="slide(this.value)">"</li>
+                    <li><label for="altura" class="form-label">Altura de la cámara: </label> <span id="altura_camara">4</span>m
+                        <input type="range" class="form-range" min="0" max="15" value="4" step="1" id="altura"></li>
+                    <li><label for="inclinacion" class="form-label">Inclinación de la cámara: </label> <span id="inclinacion_camara">70</span>º
+                        <input type="range" class="form-range" min="0" max="89" value="70" step="1" id="inclinacion"></li>
+                    <li><label for="rotacion" class="form-label">Rotación de la cámara: </label> <span id="rotacion_camara">0</span>º
+                      <input type="range" class="form-range" min="0" max="360" value="0" step="1" id="rotacion"></li>
+                      <li>Distancia muerta: <span id="dmuerta"></span>m</li>
+                      <li>Distancia máxima: <span id="dmax"></span>m</li>
                 </ul>
 
             </div>
         </div>
         <div class="col-xl-8">
+          {% if mapa %}
+            <div hidden onload="cargamapa({{mapa}})"></div>
+          {% endif %}
             <div id='map'></div>
             <div id='info'></div>
         </div>
