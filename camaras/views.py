@@ -133,12 +133,12 @@ def nuevo(request):
         posiciones_camaras_id = []
         data = json.loads(request.body)
         puntos = data['content']
-        print(puntos)
         try:
             map = Mapa.objects.get(nombre=data['nombre'], usuario=request.user)
         except Mapa.DoesNotExist:
             map = Mapa(nombre=data['nombre'], usuario=request.user)
-            map.save()
+        map.imagen = data['imagen']
+        map.save()
         for e in puntos.keys():
             info = json.loads(puntos[e])
             if 'posicion' in info.keys():
@@ -162,6 +162,10 @@ def nuevo(request):
                              y_coord=coordenadas[e]['lat'], mapa=map)
                 print(c)
                 c.save()
+        with open("camaras/static/files/mapa_" + map.nombre + "_" +
+                  str(request.user) + ".json", "w") as f:
+            del data["imagen"]
+            f.write(json.dumps(data))
         return redirect(reverse('camaras:mapas'))
 
 
@@ -212,10 +216,12 @@ def editarmapa(request, mapa_id):
 def editar(request, mapa_id):
     if request.method == 'GET':
         camaras = []
+        centro = None
         mapa = Mapa.objects.get(id=mapa_id)
         c = Colocada.objects.filter(mapa=mapa)
-        centro = [sum(punto.x_coord for punto in c)/c.count(),
-                  sum(punto.y_coord for punto in c)/c.count()]
+        if c.count() != 0:
+            centro = [sum(punto.x_coord for punto in c)/c.count(),
+                      sum(punto.y_coord for punto in c)/c.count()]
         for e in c:
             cam = Camara.objects.get(id=e.camara.id)
             camaras.append({
@@ -235,3 +241,13 @@ def editar(request, mapa_id):
             "centro": centro,
             "camaras": camaras
         }, status=200)
+
+
+def importar(request):
+    if request.method == 'GET':
+        return render(request, "camaras/importar.html", {
+
+        })
+    elif request.method == 'POST':
+        # TODO: recoger el fichero y cargar el mapa
+        return HttpResponseNotFound()

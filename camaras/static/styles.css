@@ -7,7 +7,7 @@
 #lateral{
   background-color: transparent;
   height: 500px;
-  width: 300px;
+  width: 400px;
   position: relative;
   padding-left: 30px;
 }
@@ -22,7 +22,7 @@
   padding-right: 30px;
 }
 #info {
-  width:20px;
+  width:30px;
   height:20px;
 }
 
@@ -36,4 +36,21 @@ body{
 
 .dropdown-item {
   cursor: pointer;
+}
+
+.entry {
+  position: absolute;
+  display: flex;
+}
+
+.miniatura_mapa {
+  width: 250px;
+}
+
+#error {
+  display: none;
+}
+
+label {
+  padding: 5px;
 }

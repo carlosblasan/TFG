@@ -40,6 +40,7 @@ class Camara(models.Model):
 class Mapa(models.Model):
     nombre = models.CharField(max_length=128)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    imagen = models.ImageField(null=True, blank=True)
 
     class Meta:
         unique_together = ('nombre', 'usuario',)

@@ -16,16 +16,22 @@ let marker = []
 let dist = 0
 // Variable que almacena un valor true si no se permite la ubicacion en el navegador
 let error = false
+// Variable que indica la rotacion del dibujo del area de la camara
 let rot = 0
+// Variable que indica la inclinacion de la camara
 let inclinacion = 70
+// Variable que indica la altura de la camara
 let altura = 4
-let cameramarker = null
-let datos_mapa = null
+// Variable que indica si se puede cambiar el estilo del mapa o no de street a satellite
 let estilo = true
-// Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
-// y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
-// con centro la ubicacion de la camara
-// Referencia: TODO: URL
+// Vista previa del mapa
+let imagen = null
+
+/** Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
+ * y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
+ * con centro la ubicacion de la camara
+ *  Referencia: TODO: URL
+ */
 var createGeoJSONCircle = function(center, angulo, radiusInKm, rotacion, points) {
     // Si no se especifican puntos, se ponen 64 por defecto
     if(!points) points = 64;
@@ -151,6 +157,8 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+
 function enviaVariable(nombre_mapa) {
     let respuesta = window.prompt("Introduce un nombre para el mapa. Si ya existe, se reemplazará.",nombre_mapa)
     console.log(window.sessionStorage)
@@ -162,7 +170,7 @@ function enviaVariable(nombre_mapa) {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
            },
-        body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage}),
+        body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage, "imagen":imagen}),
         
     }).then(response=> {
         if (response.redirected) {
@@ -238,7 +246,8 @@ function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
             "fill-opacity": 0.3
         }
     });
-    //console.log(map.getCanvas().toDataURL())
+    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+    console.log(imagen)
 }
 
 function crea_camara(map,longlat, carga_mapa) {
@@ -302,7 +311,9 @@ function crea_camara(map,longlat, carga_mapa) {
 
 
 function cargar_mapa(map, info_mapa) {
-    map.setCenter(info_mapa.centro)
+    if(info_mapa.centro){
+        map.setCenter(info_mapa.centro)
+    }
     let lista_camaras = info_mapa.camaras
     console.log(lista_camaras)
     for(i=0;i<lista_camaras.length;i++){
@@ -315,7 +326,9 @@ function cargar_mapa(map, info_mapa) {
         rot = parseInt(camara_actual.rotacion)
         crea_camara(map, lista_camaras[i].posicion,true)
     }
+    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
+
 
 // Inicializa el mapa que se va a mostrar en la web
 const map_init = ubicacion => {
@@ -332,6 +345,9 @@ const map_init = ubicacion => {
         map.setCenter([ubicacion.coords.longitude, ubicacion.coords.latitude])
         map.setZoom(18)
     }
+    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+    //Canvas2Image.saveAsPNG(imagen)
+
     if(estilo) {
         document.getElementById("estilo_mapa").onclick = function(){   
             text = document.getElementById("estilo_mapa").innerHTML
@@ -345,6 +361,48 @@ const map_init = ubicacion => {
             }
         }
     }
+
+    document.getElementById("boton_coords").onclick = function() {
+        let long = document.getElementById("long").value
+        let lat = document.getElementById("lat").value
+        if(!camara_id) {
+            document.getElementById("error").style.display = "block"
+            document.getElementById("error_message").innerHTML = "Debes seleccionar primero una cámara."
+            return
+        }
+        if(long && lat) {
+            document.getElementById("error").style.display = "none"
+            document.getElementById("long").value = null
+            document.getElementById("lat").value = null
+            map.setCenter([long, lat])
+            longlat = {"lng": long, "lat": lat}
+            estilo = false
+            document.getElementById("estilo_mapa").onclick = function(){void(0)}
+            document.getElementById("estilo_mapa").style.color = "#E5E6FF"
+            crea_camara(map,longlat,false)
+            
+            datos=solicita_info(camara_id)
+            get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+            info = {
+                "angulo": angulo,
+                "altura": datos.altura,
+                "inclinacion": datos.inclinacion,
+                "rotacion": datos.rotacion,
+                "dmax": Math.floor(dmax),
+                "dmuerta": Math.floor(dmuerta)
+            }
+            
+            window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))                
+            editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
+            rot = datos.rotacion
+            dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
+        } else {
+            document.getElementById("error").style.display = "block"
+            document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
+            return
+        }
+    }
+
     map.addControl(new MapboxGeocoder({
         accessToken: mapboxgl.accessToken
     }));
@@ -359,6 +417,7 @@ const map_init = ubicacion => {
         
         document.getElementById('map').onclick = function() {
             if(camara){
+
                 estilo = false
                 document.getElementById("estilo_mapa").onclick = function(){void(0)}
                 document.getElementById("estilo_mapa").style.color = "#E5E6FF"
@@ -457,7 +516,8 @@ const map_init = ubicacion => {
                     document.getElementById("rotacion").value = parseInt(e.srcElement.value)
                 }
                 
-                dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
+                dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
+                camara_id = null 
             }
         }
     });
@@ -526,13 +586,5 @@ function editar(datos, id) {
         document.getElementById("dmuerta").innerHTML = j.dmuerta
         document.getElementById("dmax").innerHTML = j.dmax
     }
-
-    
-
-    //alt.setAttribute("min", Math.floor(dmuerta))
-    //alt.setAttribute("max", Math.floor(dmax))
-    
-    
-    // Mejor setstyle y le pongo display para que este oculto y lo haga desde python
 }
 

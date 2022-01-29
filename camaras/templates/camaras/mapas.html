@@ -5,9 +5,25 @@ Mis mapas
 {% endblock %}
 
 {% block body %}
-
+    
     {% for e in lista_mapas %}
-        <a onclick="cargamapa({{e.id}})" href="{% url 'camaras:editarmapa' e.id %}">{{e.nombre}}</a>
+    <div class="entry">
+        <a onclick="cargamapa({{e.id}})" href="{% url 'camaras:editarmapa' e.id %}">
+        
+        <div>
+            <img class="miniatura_mapa" src="{{e.imagen}}">
+        </div>
+        <div>
+            {{e.nombre}}
+        </div>
+        <div>
+            <a download="{{e.nombre}}_{{user}}.png" href="{{e.imagen}}">Descargar PNG</a>
+        </div>
+        <div>
+            <a href="/static/files/mapa_{{e.nombre}}_{{user}}.json" id="mapa_json_{{e.id}}" download="mapa_{{e.nombre}}_{{user}}.json">Exportar a JSON</a>
+        </div>
+        </a>
+    </div>
     {% endfor %}
 
 {% endblock %}

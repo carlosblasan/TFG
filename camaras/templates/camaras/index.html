@@ -10,6 +10,7 @@ Bienvenido
         <a href="{% url 'camaras:logout' %}">Logout</a>
         <a href="{% url 'camaras:nuevo' %}">Nuevo mapa</a>
         <a href="{% url 'camaras:mapas' %}">Mis mapas</a>
+        <a href="{% url 'camaras:importar' %}">Importar desde JSON</a>
         {% if user.is_superuser %}
           <a href="{% url 'camaras:nuevacamara' %}">Añadir nueva camara</a>
         {% endif %}

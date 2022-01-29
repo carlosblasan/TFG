@@ -1,0 +1,19 @@
+{% extends 'camaras/layout.html' %}
+
+{% block title %}
+    Importar
+{% endblock %}
+
+{% block body %}
+
+<form method="POST" id="dropform" name="dropfileform" class="dropzone">
+    {% csrf_token %}
+     <h4>Elige el json para importar el proyecto</h4>
+     <input type="file" name="file" />
+     <button type="submit" id="add">Cargar mapa</button>
+</form>
+
+
+
+
+{% endblock %}
