@@ -1,8 +1,11 @@
 import json
+import os
 from django.http.response import HttpResponseNotFound
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
+
+from TFG.settings import BASE_DIR, FILES_URL
 from .forms import LoginForm, RegisterForm, CameraForm
 from django.contrib.auth import authenticate, login, logout
 from .models import Colocada, Mapa, Camara
@@ -162,7 +165,7 @@ def nuevo(request):
                              y_coord=coordenadas[e]['lat'], mapa=map)
                 print(c)
                 c.save()
-        with open("camaras/static/files/mapa_" + map.nombre + "_" +
+        with open("camaras"+FILES_URL+"mapa_" + map.nombre + "_" +
                   str(request.user) + ".json", "w") as f:
             del data["imagen"]
             f.write(json.dumps(data))
@@ -217,7 +220,10 @@ def editar(request, mapa_id):
     if request.method == 'GET':
         camaras = []
         centro = None
-        mapa = Mapa.objects.get(id=mapa_id)
+        try:
+            mapa = Mapa.objects.get(id=mapa_id)
+        except Mapa.DoesNotExist():
+            return HttpResponseNotFound()
         c = Colocada.objects.filter(mapa=mapa)
         if c.count() != 0:
             centro = [sum(punto.x_coord for punto in c)/c.count(),
@@ -248,6 +254,75 @@ def importar(request):
         return render(request, "camaras/importar.html", {
 
         })
+    # elif request.method == 'POST':
+    #     fileitem = request.POST['file']
+    #     fn = os.path.basename(fileitem)
+    #     print(fn)
+    #     open(os.path.join('tmp', fn), 'wb').write(fileitem.file.read())
+    #     message = 'The file "' + fn + '" was uploaded successfully'
+    #     print(message)
+    #     return HttpResponseNotFound()
+
+
+def editarimportado(request, nombre_mapa):
+    if request.method == 'GET':
+        try:
+            mapa = Mapa.objects.get(nombre=nombre_mapa, usuario=request.user)
+        except Mapa.DoesNotExist:
+            return HttpResponseNotFound()
+            # m = Mapa(nombre=nombre_mapa, usuario=request.user)
+            # m.save()
+        try:
+            camaras = Colocada.objects.filter(mapa=mapa)
+        except Colocada.DoesNotExist:
+            return HttpResponseNotFound()
+        print("HOLA")
+        return redirect(reverse('camaras:nuevo'), {
+            "nombre": nombre_mapa,
+            "mapa": mapa.id,
+            "camaras": camaras,
+        })
+
     elif request.method == 'POST':
-        # TODO: recoger el fichero y cargar el mapa
-        return HttpResponseNotFound()
+        data = json.loads(request.body)
+        print(data)
+        camaras = []
+        for i in data['content'].keys():
+            if "posicion" in i:
+                cam_id = i.split('_')[1].split('-')[0]
+                colocada = i.split('_')[1].split('-')[1]
+            try:
+                camara = Camara.objects.get(id=cam_id)
+            except Camara.DoesNotExist:
+                return HttpResponseNotFound()
+            try:
+                c = Colocada.objects.get(camara=camara)
+            except Colocada.DoesNotExist:
+                return HttpResponseNotFound()
+            e = json.loads(data['content'][i])
+            print(type(e))
+            camaras.append({"posicion": {
+                                "lng": e['posicion']['lng'],
+                                "lat": e['posicion']['lat']
+                            },
+                            "camara_id": cam_id,
+                            "colocada": colocada,
+                            "distancia_focal": camara.distancia_focal,
+                            "nombre_camara": camara.nombre,
+                            "angulo": c.angulo,
+                            "inclinacion": c.inclinacion,
+                            "rotacion": c.rotacion,
+                            "altura": c.altura,
+                            "dmax": c.dmax,
+                            "dmuerta": c.dmuerta})
+        # TODO: ver como se pasan parametros con redirect
+        
+        return redirect(reverse('camaras:nuevo'), {
+            "mapa": -1,
+            "nombre": data['nombre'],
+            "camaras": camaras,
+        })
+        return render(request, "camaras/nuevo.html", {
+            "nombre": data['nombre'],
+            "camaras": camaras,
+        })

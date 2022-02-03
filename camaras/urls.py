@@ -13,5 +13,7 @@ urlpatterns = [
     path('camaras/<int:camara_id>', views.camaras, name="camaras"),
     path('editarmapa/<int:mapa_id>', views.editarmapa, name="editarmapa"),
     path('editar/<int:mapa_id>', views.editar, name="editar"),
+    path('editarimportado/<str:nombre_mapa>', views.editarimportado,
+         name="editarimportado"),
     path("importar", views.importar, name="importar"),
 ]

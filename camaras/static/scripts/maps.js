@@ -309,6 +309,34 @@ function crea_camara(map,longlat, carga_mapa) {
     }
 }
 
+function handleFiles() {
+    var fileToLoad = document.getElementById("inputfile").files[0];
+    var fileReader = new FileReader();
+    fileReader.onload = function(fileLoadedEvent){
+        var content = JSON.parse(fileLoadedEvent.target.result);
+        console.log(content)
+        fetch(`/editarimportado/${content.nombre}`, {
+            method:'POST',
+            redirect: 'follow',
+            headers: { 
+                "X-CSRFToken": getCookie('csrftoken'), 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+               },
+            body: JSON.stringify(content),
+        }).then(response=> {
+            if (response.redirected) {
+                //window.location.href = response.url;
+                console.log(response)
+           }
+        });
+    };
+    
+    fileReader.readAsText(fileToLoad, "UTF-8");
+    
+      
+}
+
 
 function cargar_mapa(map, info_mapa) {
     if(info_mapa.centro){
@@ -409,7 +437,10 @@ const map_init = ubicacion => {
     map.addControl(new mapboxgl.NavigationControl());
     map.on('load', ()=>{
         let map_id = document.getElementById("edit_mapa_id").innerHTML
-        if(window.localStorage.getItem("mapa_".concat(map_id))){
+        if(map_id==-1){
+
+        }
+        if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
             cargar_mapa(map, JSON.parse(window.localStorage.getItem("mapa_".concat(map_id))))
         }
     })
