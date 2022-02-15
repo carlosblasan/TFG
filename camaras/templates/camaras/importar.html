@@ -3,16 +3,14 @@
 {% block title %}
     Importar
 {% endblock %}
-
+{% block importar-active %} class="nav-link active" {% endblock %}
 {% block body %}
 
-<!--<form method="POST" id="dropform" name="dropfileform" class="dropzone" action="{% url 'camaras:importar' %}">
-    {% csrf_token %}-->
-    <h4>Elige el json para importar el proyecto</h4>
-    <input id="inputfile" type="file" name="file" accept="application/JSON" onchange="handleFiles()" required/>
 
-
-
-
+    <h4>Importar mapa desde fichero</h4>
+    <div>
+        <label for="inputfile" class="form-label">Seleccionar fichero:</label>
+        <input class="form-control form-control-lg" id="inputfile" name="file" type="file"accept="application/JSON" onchange="handleFiles()" required/>
+    </div>
 
 {% endblock %}

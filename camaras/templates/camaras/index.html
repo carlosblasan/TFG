@@ -3,59 +3,88 @@
 {% block title %}
 Bienvenido
 {% endblock %}
-{% block menu %}
-<h3>Bienvenido a la aplicacion</h3>
-    {% if user.is_authenticated %}
-        Hola <!--Info del usuario-->
-        <a href="{% url 'camaras:logout' %}">Logout</a>
-        <a href="{% url 'camaras:nuevo' %}">Nuevo mapa</a>
-        <a href="{% url 'camaras:mapas' %}">Mis mapas</a>
-        <a href="{% url 'camaras:importar' %}">Importar desde JSON</a>
-        {% if user.is_superuser %}
-          <a href="{% url 'camaras:nuevacamara' %}">Añadir nueva camara</a>
-        {% endif %}
-    {% else %}
-        <a href="{% url 'camaras:login' %}">Iniciar sesión</a>
-        <a href="{% url 'camaras:registro' %}">Registrarse</a>
-    {% endif %}
-
-    
-{% endblock %}
-
+{% block home-active %} class="nav-link active" {% endblock %}
 {% block body %}
+
+<div id="titulo">
+  <h3>
+    ¡Bienvenido!
+  </h3>
+
+  <h4 class="text-muted">
+    Primeros pasos en Guardian:
+  </h4>
+</div>
+
 <div class="container-fluid">
-    <div id="myCarousel" class="carousel slide" data-bs-ride="carousel">
-        <!-- Indicators -->
-        <div class="carousel-indicators">
-          <button type="button" data-target="#myCarousel" data-bs-slide-to="0" class="active"></button>
-          <button type="button" data-target="#myCarousel" data-bs-slide-to="1"></button>
-          <button type="button" data-target="#myCarousel" data-bs-slide-to="2"></button>
-        </div>
-      
-        <!-- Wrapper for slides -->
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <img src="{% static 'images/mapa_camaras.jpg' %}" alt="Los Angeles">
-          </div>
-      
-          <div class="carousel-item">
-            <img src="chicago.jpg" alt="Chicago" class="d-block w-100">
-          </div>
-      
-          <div class="carousel-item">
-            <img src="ny.jpg" alt="New York" class="d-block w-100">
-          </div>
-        </div>
-      
-        <!-- Left and right controls -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon"></span>
+  <div class="accordion" id="indexPage">
+    {% if not user.is_authenticated %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingZero">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZero" aria-expanded="false" aria-controls="collapseZero">
+          ¿Cómo puedo darme de alta en la aplicación?
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
-          <span class="carousel-control-next-icon"></span>
-        </button>
+      </h2>
+      <div id="collapseZero" class="accordion-collapse collapse" aria-labelledby="headingZero" data-bs-parent="#indexPage">
+        <div class="accordion-body">
+          <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+        </div>
       </div>
     </div>
+    {% endif %}
 
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          ¿Cómo crear un mapa?
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#indexPage">
+        <div class="accordion-body">
+          <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          ¿Cómo puedo consultar o editar mis mapas?
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#indexPage">
+        <div class="accordion-body">
+          <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          ¿Cómo editar un mapa desde un fichero JSON?
+        </button>
+      </h2>
+      <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#indexPage">
+        <div class="accordion-body">
+          <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+        </div>
+      </div>
+    </div>
+    {% if user.is_superuser %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingFour">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+          ¿Cómo dar de alta una nueva cámara en el sistema?
+        </button>
+      </h2>
+      <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#indexPage">
+        <div class="accordion-body">
+          <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}
 

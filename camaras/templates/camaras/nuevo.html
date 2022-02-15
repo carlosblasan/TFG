@@ -4,19 +4,15 @@
 Crear nuevo mapa
 
 {% endblock %}
-
+{% block nuevo-active %} class="nav-link active" {% endblock %}
 {% block body %}
     <p id="edit_mapa_id" hidden>{{mapa}}</p>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'camaras:index' %}">Home</a>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
                     <a id="estilo_mapa" class="nav-link active" aria-current="page">Vista de satélite</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'camaras:mapas' %}">Mis mapas</a>
                   </li>
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -39,27 +35,13 @@ Crear nuevo mapa
                 
               </div>
             </div>
-            <div id="logout" class="collapse navbar-collapse justify-content-end">
-                <span class="navbar-text">
-                  <a class="nav-link active" aria-current="page" href="{% url 'camaras:logout' %}">Logout</a>
-                </span>
-              </div>
+            
         </nav>
 
         
     <div class="row">
         <div id="lateral" class="col-xl-2">
-          <div>
-            Coloca la cámara indicando sus coordenadas:
-
-            <label>Longitud <input id="long" type="text" name="long"></label>
-            <label>Latitud <input id="lat" type="text" name="lat"></label>
-            <button id="boton_coords">Colocar cámara</button>
-            <div id="error" class="alert alert-danger" role="alert">
-              <strong>Error: </strong><span id="error_message"></span>
-            </div>
-          </div>
-            <div id="editar">
+            <div id="editar" class="container-fluid">
                 Editar cámara <span id="nombre_camara"></span><br/>
                 <ul>
                     <li>Distancia focal: <span id="dist_focal"></span>mm</li>
@@ -74,6 +56,25 @@ Crear nuevo mapa
                       <li>Distancia máxima: <span id="dmax"></span>m</li>
                 </ul>
 
+            </div>
+            <div>
+              Coloca la cámara indicando sus coordenadas:
+  
+              <div class="mb-3">
+                <label for="long" class="form-label">
+                    Longitud
+                </label>
+                <input autofocus name="long" type="text" class="form-control" id="long">
+                <label for="lat" class="form-label">
+                    Latitud
+                </label>
+                <input name="lat" type="text" class="form-control" id="lat">
+              </div>
+              <input type="submit" id="boton_coords" class="btn btn-primary" name="boton_coords" value="Colocar cámara"/>
+              
+              <div id="error" class="alert alert-danger" role="alert">
+                <strong>Error: </strong><span id="error_message"></span>
+              </div>
             </div>
         </div>
         <div class="col-xl-8">

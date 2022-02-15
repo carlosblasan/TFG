@@ -26,6 +26,9 @@ let altura = 4
 let estilo = true
 // Vista previa del mapa
 let imagen = null
+// Objeto json que carga el mapa cuando se importa desde un fichero
+let mapaDesdeJSON = false
+let sensor = null;
 
 /** Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
  * y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
@@ -140,6 +143,8 @@ const draw = new MapboxDraw({
     },
     
 });
+
+
 // Funcion que obtiene el valor de la cookie dada por su nombre
 // Referencia: https://docs.djangoproject.com/en/dev/ref/csrf/#:~:text=function%20getCookie(name)
 function getCookie(name) {
@@ -182,6 +187,7 @@ function enviaVariable(nombre_mapa) {
 
 
 function get_data(inclinacion, dist, altura, h) {
+    sensor = h
     // Angulo del campo de vision
     angulo = 2*Math.atan(h/(2*dist))
     // Angulo a grados
@@ -214,8 +220,9 @@ function get_data(inclinacion, dist, altura, h) {
         dmax=0
     }
     angulo = angulo*Math.PI/180
-
 }
+
+
 function borraCirculos(map,id) {
     map.removeLayer('circle'.concat(id))
     map.removeSource('circle'.concat(id))
@@ -224,6 +231,7 @@ function borraCirculos(map,id) {
 }
 
 function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
+    console.log(angulo)
     map.addSource("circle".concat(id), createGeoJSONCircle([longlat.lng,longlat.lat], angulo, dmax/1000, rot));
     map.addLayer({
         "id": "circle".concat(id),
@@ -247,10 +255,36 @@ function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
         }
     });
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-    console.log(imagen)
 }
 
-function crea_camara(map,longlat, carga_mapa) {
+function eliminarMapa(map_id) {
+    fetch(`/eliminar`, {
+        method:'POST',
+        redirect: 'follow',
+        headers: { 
+            "X-CSRFToken": getCookie('csrftoken'), 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+            },
+        body: JSON.stringify({"eliminar": map_id}),
+    }).then(response=> {
+        window.location.href = response.url;
+    })
+}
+
+function cargaInfo() {
+    return info = {
+        "angulo": angulo,
+        "altura": altura,
+        "inclinacion": inclinacion,
+        "rotacion": rotacion,
+        "dmax": Math.floor(dmax),
+        "dmuerta": Math.floor(dmuerta),
+        "sensor": sensor
+    }
+}
+
+function crea_camara(map,longlat, carga_mapa, camara_actual) {
     if(!carga_mapa){
         rot=0
         colocada++                               
@@ -267,83 +301,169 @@ function crea_camara(map,longlat, carga_mapa) {
     m.setDraggable(true)
     position_id = ''.concat(camara_id).concat('-').concat(colocada)
     puntoscamara.push({type:"Camara",geometry:{type:"Point",coordinates:[longlat.lng,longlat.lat]}})
-    camara=false
     window.sessionStorage.setItem("posicion_".concat(position_id), JSON.stringify({"posicion":longlat}))
+    if(!carga_mapa){
+        datos=solicita_info(camara_id)
+        sensor = datos.sensor
+        get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+        angulo = angulo,
+        altura = datos.altura,
+        inclinacion = datos.inclinacion,
+        console.log(datos.rotacion)
+        rotacion = datos.rotacion,
+        dmax = Math.floor(dmax),
+        dmuerta = Math.floor(dmuerta)
+    } else {
+        sensor = camara_actual.sensor
+        get_data(camara_actual.inclinacion, camara_actual.distancia_focal, camara_actual.altura, camara_actual.sensor.split("x")[0])
+        angulo = angulo,
+        altura = camara_actual.altura,
+        inclinacion = camara_actual.inclinacion,
+        console.log(camara_actual.rotacion)
+        rotacion = camara_actual.rotacion,
+        dmax = Math.floor(dmax),
+        dmuerta = Math.floor(dmuerta)
+    }
+    
+    info = cargaInfo()
+        
+    window.sessionStorage.setItem(position_id, JSON.stringify(info))
+    
     m.setLngLat([longlat.lng,longlat.lat]).addTo(map);
     marker.push({"position_id": position_id, "marker":m})
     m.getElement().addEventListener('click', (e) => {
         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(e.target.id))).posicion
         camara_id = parseInt(e.target.id.split('-')[0])
         colocada = parseInt(e.target.id.split('-')[1])
-        datos=solicita_info(camara_id)
+        if(!carga_mapa){
+            datos=solicita_info(camara_id)
+        } else{
+            datos = cargaInfo()
+        }   
         get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+        
         editar(datos, e.target.id)
         
     })
     m.on('dragstart', function(e){
         camara_id = e.target._element.id.split('-')[0]
         colocada = e.target._element.id.split('-')[1]
-        datos=solicita_info(camara_id)
-        get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+        if(!carga_mapa){
+            datos=solicita_info(camara_id)
+            get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+        } else{
+            get_data(camara_actual.inclinacion, camara_actual.distancia_focal, camara_actual.altura, camara_actual.sensor.split("x")[0])
+            console.log("Estoy AQUi")
+            datos = cargaInfo()
+            console.log(datos)
+        } 
+        
+        
         editar(datos, e.target._element.id)
         borraCirculos(map, e.target._element.id)
     })
     m.on('dragend', function(e) {
         camara_id = e.target._element.id.toString().split('-')[0]
         colocada = e.target._element.id.toString().split('-')[1]
-        datos=solicita_info(camara_id)
+        if(!carga_mapa){
+            datos=solicita_info(camara_id)
+            get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+        } else{
+            get_data(camara_actual.inclinacion, camara_actual.distancia_focal, camara_actual.altura, camara_actual.sensor.split("x")[0])
+            datos = cargaInfo()
+            console.log(datos)
+        } 
         let altura = parseInt(document.getElementById("altura_camara").innerHTML)
         let inclinacion = parseInt(document.getElementById("inclinacion_camara").innerHTML)
         let rotacion = parseInt(document.getElementById("rotacion_camara").innerHTML)
-        get_data(inclinacion, datos.distancia_focal, altura, datos.sensor.split("x")[0])
+        //get_data(inclinacion, datos.distancia_focal, altura, datos.sensor.split("x")[0])
         longlat = e.target._lngLat
         position_id = ''.concat(camara_id).concat('-').concat(colocada)
-        window.sessionStorage.setItem("posicion_".concat(position_id), JSON.stringify({"posicion":longlat}))
+        window.sessionStorage.setItem("posicion_".concat(position_id), JSON.stringify({"posicion":longlat}))     
         editar(datos, e.target._element.id)
+        console.log(longlat)
         dibujaCirculos(map, e.target._element.id, longlat, angulo, dmax, dmuerta,rotacion)
     }) 
 
+    console.log("Voy a dibujar")
     if(carga_mapa){
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
     }
 }
 
+
 function handleFiles() {
     var fileToLoad = document.getElementById("inputfile").files[0];
     var fileReader = new FileReader();
+    var contiene = false;
+    camaras = []
+    fileReader.readAsText(fileToLoad, "UTF-8");
+    
     fileReader.onload = function(fileLoadedEvent){
         var content = JSON.parse(fileLoadedEvent.target.result);
         console.log(content)
-        fetch(`/editarimportado/${content.nombre}`, {
-            method:'POST',
-            redirect: 'follow',
-            headers: { 
-                "X-CSRFToken": getCookie('csrftoken'), 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-               },
-            body: JSON.stringify(content),
-        }).then(response=> {
-            if (response.redirected) {
-                //window.location.href = response.url;
-                console.log(response)
-           }
-        });
-    };
-    
-    fileReader.readAsText(fileToLoad, "UTF-8");
-    
-      
+        // Si el conjunto de claves solo contiene "posicion_" entonces se hace una llamada a 
+        // la API para obtener datos adicionales sobre cada camara
+        for(i=0;i<Object.keys(content.content).length;i++){
+            console.log(Object.keys(content.content)[i])
+            if(Object.keys(content.content)[i].includes("posicion")){
+                contiene = true;
+            }
+        }
+
+        if(contiene) {
+            for(i=0;i<Object.keys(content.content).length;i++){
+                c1 = 0
+                c2 = 0
+                numCamaras = 0
+                if(!Object.keys(content.content)[i].includes("posicion")){
+                    numCamaras++
+                    pos = "posicion_".concat(Object.keys(content.content)[i])
+                    posicion = content.content[pos]
+                    info_cam = solicita_info(parseInt(Object.keys(content.content)[i].split('-')[0]))
+                    
+                    c1 += parseFloat(JSON.parse(posicion).posicion.lng)
+                    c2 += parseFloat(JSON.parse(posicion).posicion.lat)
+                    datos_camara = JSON.parse(content.content[Object.keys(content.content)[i]])
+                    camaras.push({
+                        "posicion": JSON.parse(posicion).posicion,
+                        "camara_id": info_cam.id,
+                        "colocada": Object.keys(content.content)[i].split('-')[1],
+                        "distancia_focal": info_cam.distancia_focal,
+                        "sensor": info_cam.sensor,
+                        "nombre_camara": info_cam.nombre,
+                        "angulo": datos_camara.angulo,
+                        "inclinacion": datos_camara.inclinacion,
+                        "rotacion": datos_camara.rotacion,
+                        "altura": datos_camara.altura,
+                        "dmax": datos_camara.dmax,
+                        "dmuerta": datos_camara.dmuerta
+                    })
+                }
+            }
+            centro = [c1/numCamaras, c2/numCamaras]
+            console.log(centro)
+            info = {
+                "centro": centro,
+                "camaras": camaras
+            }
+            window.localStorage.setItem("mapa_JSON", JSON.stringify(info))
+            window.localStorage.setItem("desde_JSON", true)
+            window.location.href = "/nuevo";
+
+        }
+    }; 
+          
 }
 
 
 function cargar_mapa(map, info_mapa) {
+    console.log(info_mapa)
     if(info_mapa.centro){
         map.setCenter(info_mapa.centro)
     }
     let lista_camaras = info_mapa.camaras
-    console.log(lista_camaras)
     for(i=0;i<lista_camaras.length;i++){
         camara_actual = lista_camaras[i]
         camara_id = camara_actual.camara_id
@@ -352,7 +472,8 @@ function cargar_mapa(map, info_mapa) {
         dmax = camara_actual.dmax
         dmuerta = camara_actual.dmuerta 
         rot = parseInt(camara_actual.rotacion)
-        crea_camara(map, lista_camaras[i].posicion,true)
+        sensor = camara_actual.sensor
+        crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i])
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
@@ -361,6 +482,7 @@ function cargar_mapa(map, info_mapa) {
 // Inicializa el mapa que se va a mostrar en la web
 const map_init = ubicacion => {
     window.sessionStorage.clear();
+
     const map = new mapboxgl.Map({
         container: 'map', // container ID
         style: 'mapbox://styles/mapbox/streets-v11', // style URL
@@ -372,6 +494,7 @@ const map_init = ubicacion => {
     if(!error){
         map.setCenter([ubicacion.coords.longitude, ubicacion.coords.latitude])
         map.setZoom(18)
+        console.log(ubicacion)
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
     //Canvas2Image.saveAsPNG(imagen)
@@ -389,7 +512,9 @@ const map_init = ubicacion => {
             }
         }
     }
-
+    /**
+     * Si se introducen las coordenada por medio del formulario
+    */
     document.getElementById("boton_coords").onclick = function() {
         let long = document.getElementById("long").value
         let lat = document.getElementById("lat").value
@@ -399,35 +524,39 @@ const map_init = ubicacion => {
             return
         }
         if(long && lat) {
-            document.getElementById("error").style.display = "none"
-            document.getElementById("long").value = null
-            document.getElementById("lat").value = null
-            map.setCenter([long, lat])
-            longlat = {"lng": long, "lat": lat}
-            estilo = false
-            document.getElementById("estilo_mapa").onclick = function(){void(0)}
-            document.getElementById("estilo_mapa").style.color = "#E5E6FF"
-            crea_camara(map,longlat,false)
-            
-            datos=solicita_info(camara_id)
-            get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
-            info = {
-                "angulo": angulo,
-                "altura": datos.altura,
-                "inclinacion": datos.inclinacion,
-                "rotacion": datos.rotacion,
-                "dmax": Math.floor(dmax),
-                "dmuerta": Math.floor(dmuerta)
+            if(Math.abs(long) <= 180 && Math.abs(lat) <= 90){
+                
+                document.getElementById("error").style.display = "none"
+                document.getElementById("long").value = null
+                document.getElementById("lat").value = null
+                map.setCenter([long, lat])
+                longlat = {"lng": long, "lat": lat}
+                estilo = false
+                document.getElementById("estilo_mapa").onclick = function(){void(0)}
+                document.getElementById("estilo_mapa").style.color = "#E5E6FF"
+                crea_camara(map,longlat,false, null)
+                
+                datos=solicita_info(camara_id)
+                
+                get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
+                info = {
+                    "angulo": angulo,
+                    "altura": datos.altura,
+                    "inclinacion": datos.inclinacion,
+                    "rotacion": datos.rotacion,
+                    "dmax": Math.floor(dmax),
+                    "dmuerta": Math.floor(dmuerta)
+                }
+                
+                window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))                
+                editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
+                rot = datos.rotacion
+                dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
+            } else {
+                document.getElementById("error").style.display = "block"
+                document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
+                return
             }
-            
-            window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))                
-            editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
-            rot = datos.rotacion
-            dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
-        } else {
-            document.getElementById("error").style.display = "block"
-            document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
-            return
         }
     }
 
@@ -436,24 +565,30 @@ const map_init = ubicacion => {
     }));
     map.addControl(new mapboxgl.NavigationControl());
     map.on('load', ()=>{
-        let map_id = document.getElementById("edit_mapa_id").innerHTML
-        if(map_id==-1){
 
-        }
+        // Cargar el mapa
+        let map_id = document.getElementById("edit_mapa_id").innerHTML
         if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
             cargar_mapa(map, JSON.parse(window.localStorage.getItem("mapa_".concat(map_id))))
+            console.log("He entrado aqui")
+        } else if(window.localStorage.getItem("desde_JSON") == 'true'){
+            console.log("HOLA MUNDO")
+            window.localStorage.setItem("desde_JSON", false)
+            cargar_mapa(map, JSON.parse(window.localStorage.getItem("mapa_JSON")))
+            console.log(window.localStorage.getItem("mapa_JSON"))
+            window.localStorage.removeItem("mapa_JSON")
         }
     })
     map.on('mousemove', (e) => {
         
         document.getElementById('map').onclick = function() {
             if(camara){
-
+                camara=false
                 estilo = false
                 document.getElementById("estilo_mapa").onclick = function(){void(0)}
                 document.getElementById("estilo_mapa").style.color = "#E5E6FF"
                 longlat = e.lngLat.wrap()
-                crea_camara(map,longlat,false)
+                crea_camara(map,longlat,false, null)
                 
                 datos=solicita_info(camara_id)
                 get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
@@ -469,14 +604,18 @@ const map_init = ubicacion => {
                 window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))                
                 editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
                 rot = datos.rotacion
+
+                // Si se cambia la altura de la camara
                 document.getElementById("altura").oninput=function(e){
                     let inclinacion = parseInt(document.getElementById("inclinacion_camara").innerHTML)
                     let alt = document.getElementById("altura_camara")
                     let rotacion = parseInt(document.getElementById("rotacion_camara").innerHTML)
                     alt.innerHTML = e.srcElement.value
-                    //datos=solicita_info(camara_id)
+                    datos=solicita_info(camara_id)
+                    //datos = cargaInfo()
                     get_data(inclinacion, datos.distancia_focal, parseInt(e.srcElement.value), datos.sensor.split("x")[0])
                     borraCirculos(map, ''.concat(camara_id).concat("-").concat(colocada))
+                    longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
                     info = {
                         "angulo": angulo,
@@ -493,14 +632,19 @@ const map_init = ubicacion => {
                     document.getElementById("rotacion_camara").innerHTML = rot
                 }
                 editar(datos,''.concat(camara_id).concat("-").concat(colocada))
+
+                // Si cambia la inclinacion de la camara
                 document.getElementById("inclinacion").oninput=function(e){
                     
                     let inc = document.getElementById("inclinacion_camara")
                     inc.innerHTML = e.srcElement.value
                     let altura = parseInt(document.getElementById("altura_camara").innerHTML)
                     let rotacion = parseInt(document.getElementById("rotacion_camara").innerHTML)
+                    datos = solicita_info(camara_id)
                     get_data(parseInt(e.srcElement.value), datos.distancia_focal, altura, datos.sensor.split("x")[0])
-                    borraCirculos(map,''.concat(camara_id).concat("-").concat(colocada))            
+                    borraCirculos(map,''.concat(camara_id).concat("-").concat(colocada))          
+                    longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
+
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
                     info = {
                         "angulo": angulo,
@@ -517,7 +661,10 @@ const map_init = ubicacion => {
                     document.getElementById("rotacion_camara").innerHTML = rot
                 }
                 editar(datos,''.concat(camara_id).concat("-").concat(colocada))
-                document.getElementById("rotacion").oninput=function(e){
+                console.log(camara_id)
+                // Si cambia la rotacion de la camara
+                document.getElementById("rotacion").oninput = function(e) {
+
                     rot = parseInt(e.srcElement.value)
                     for(i=0;i<marker.length;i++){
                         if(marker[i].position_id==''.concat(camara_id).concat("-").concat(colocada)){
@@ -529,8 +676,11 @@ const map_init = ubicacion => {
                     inc.innerHTML = e.srcElement.value
                     let altura = parseInt(document.getElementById("altura_camara").innerHTML)
                     let inclinacion = parseInt(document.getElementById("inclinacion_camara").innerHTML)
+                    datos = solicita_info(camara_id)
                     get_data(inclinacion, datos.distancia_focal, altura, datos.sensor.split("x")[0])
-                    borraCirculos(map,''.concat(camara_id).concat("-").concat(colocada))            
+                    borraCirculos(map,''.concat(camara_id).concat("-").concat(colocada))       
+                    longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
+
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, parseInt(e.srcElement.value))
                     info = {
                         "angulo": angulo,
@@ -547,8 +697,7 @@ const map_init = ubicacion => {
                     document.getElementById("rotacion").value = parseInt(e.srcElement.value)
                 }
                 
-                dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
-                camara_id = null 
+                dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
             }
         }
     });
@@ -571,6 +720,7 @@ const map_init = ubicacion => {
 if ("geolocation" in navigator) {
     if(document.getElementById('map')){
         const onErrorDeUbicacion = err => {
+            console.log("Error de ubicacion")
             error = true
             map_init()        
         }

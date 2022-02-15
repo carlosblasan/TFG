@@ -49,7 +49,7 @@ class Mapa(models.Model):
 class Colocada(models.Model):
     mapa = models.ForeignKey(Mapa, on_delete=models.CASCADE)
     camara = models.ForeignKey(Camara, on_delete=models.CASCADE)
-    angulo = models.DecimalField(default=45, decimal_places=10, max_digits=15)
+    angulo = models.IntegerField(default=45)
     inclinacion = models.IntegerField(default=70)
     altura = models.IntegerField(default=4)
     rotacion = models.IntegerField(default=0)

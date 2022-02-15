@@ -19,16 +19,15 @@ class RegisterForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    usuario = forms.CharField(label="Usuario", max_length=128)
+    usuario = forms.CharField(max_length=128)
     password = forms.CharField(widget=PasswordInput,
-                               label="Contraseña",
                                max_length=128)
 
 
 class CameraForm(forms.ModelForm):
     nombre = forms.CharField(label="Nombre cámara", max_length=128)
     resolucion = forms.CharField(widget=forms.Select())
-    
+
     class Meta:
         model = Camara
         fields = ('nombre',)

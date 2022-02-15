@@ -16,4 +16,5 @@ urlpatterns = [
     path('editarimportado/<str:nombre_mapa>', views.editarimportado,
          name="editarimportado"),
     path("importar", views.importar, name="importar"),
+    path('eliminar', views.eliminar, name='eliminar'),
 ]

@@ -3,7 +3,7 @@
 {% block title %}
 Registrarse
 {% endblock %}
-
+{% block register-active %} class="nav-link active" {% endblock %}
 {% block body %}
     <form method="post" action="{% url 'camaras:registro' %}">
         {% csrf_token %}
