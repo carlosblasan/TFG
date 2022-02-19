@@ -17,4 +17,5 @@ urlpatterns = [
          name="editarimportado"),
     path("importar", views.importar, name="importar"),
     path('eliminar', views.eliminar, name='eliminar'),
+    path('miscamaras', views.miscamaras, name="miscamaras"),
 ]

@@ -1,0 +1,39 @@
+{% extends 'camaras/layout.html' %}
+{% load static %}
+{% block title %}
+Mis cámaras
+{% endblock %}
+{% block camaras-active %} class="nav-link active" {% endblock %}
+{% block body %}
+<h3 class="display-3">Mis cámaras</h3>
+{% for i, cam in camaras.items %}
+<h6 class="display-6">Cámaras de distancia focal {{i}} mm:</h6>
+<ul class="list-group"> 
+    {% for camara in cam %}
+    <li class="list-group-item">
+        Nombre de la cámara: {{camara.nombre}}
+        <ul class="list-group">
+        <li class="list-group-item">
+            Distancia focal: {{camara.distancia_focal}}
+        </li>
+        <li class="list-group-item">
+            Resolución: {{camara.resolucion}}
+        </li>
+        <li class="list-group-item">
+            Tamaño del sensor: {{camara.sensor}}
+        </li>
+        <li class="list-group-item">
+            Precio de la cámara: {{camara.precio}}
+        </li>
+        <button type="button" class="btn btn-danger" onclick="eliminarCamara({{camara.id}})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+            </svg>
+            Eliminar cámara
+        </button>
+    </ul>
+    </li>
+    {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

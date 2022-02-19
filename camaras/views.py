@@ -135,12 +135,26 @@ def nuevacamara(request):
     # camara en la base de datos. Si no, se muestra un error
     elif request.method == 'POST':
         camera_form = CameraForm(data=request.POST)
-        if camera_form.is_valid():
-            camara = camera_form.save()
-            camara.save()
+
+        if not camera_form.is_valid():
+            return render(request, "camaras/nuevacamara.html", {
+                          "form": camera_form,
+                          })
         else:
-            return HttpResponseNotFound()  # TODO: Mostrar error
-        return redirect(reverse('camaras:index'))
+            distancia_focal = camera_form.cleaned_data['distancia_focal']
+            nombre = camera_form.cleaned_data['nombre']
+            resolcion = camera_form.cleaned_data['resolucion']
+            sensor = camera_form.cleaned_data['sensor']
+            precio = camera_form.cleaned_data['precio']
+            camara = Camara(
+                    nombre=nombre,
+                    distancia_focal=distancia_focal,
+                    resolucion=resolcion,
+                    sensor=sensor,
+                    precio=precio
+                    )
+            camara.save()
+            return redirect(reverse('camaras:index'))
     return HttpResponseNotFound()
 
 
@@ -168,11 +182,14 @@ def nuevo(request):
         puntos = data['content']
         # Obtenemos el mapa de la base de datos a partir de su nombre,
         # si existe
-        try:
-            map = Mapa.objects.get(nombre=data['nombre'], usuario=request.user)
+        # try:
+        #     map = Mapa.objects.get_or_create(
+        #             nombre=data['nombre'],
+        #             usuario=request.user)[0]
         # Si el mapa no existia previamente, lo creamos
-        except Mapa.DoesNotExist:
-            map = Mapa(nombre=data['nombre'], usuario=request.user)
+        # except Mapa.DoesNotExist:
+        Mapa.objects.get(nombre=data['nombre'], usuario=request.user).delete()
+        map = Mapa(nombre=data['nombre'], usuario=request.user)
         # Guardamos la miniatura del mapa en la base de datos y guardamos
         # todo el mapa
         map.imagen = data['imagen']
@@ -186,22 +203,27 @@ def nuevo(request):
             if 'posicion' in info.keys():
                 # Guardamos el identificador del punto en el mapa (compuesto
                 # por el id de la camara y por el numero de camara colocada)
-                posiciones_camaras_id.append(e.split('_')[1])
+
+                posiciones_camaras_id.append(
+                        {e.split('_')[1]: puntos[e.split('_')[1]]}
+                    )
                 # Guardamos las coordenadas de la camara
                 coordenadas[e.split('_')[1]] = info['posicion']
             # Si no contiene "posicion" es que contiene toda la informacion
             # restante
         for e in puntos.keys():
-            info = json.loads(puntos[e])
-            if 'posicion' not in info.keys():
+            datos = json.loads(puntos[e])
+            # print(datos)
+            # print(posiciones_camaras_id)
+            if 'posicion' not in datos.keys():
                 # Eliminamos de la lista auxiliar el id del punto del que vamos
                 # a guardar su informacion
                 pos = posiciones_camaras_id.pop()
                 # Guardamos el id de la camara para obtener la camara de la
                 # base de datos
-                camara_id = int(pos.split('-')[0])
+                camara_id = int(list(pos.keys())[0].split('-')[0])
                 cam = Camara.objects.get(id=camara_id)
-                info = json.loads(puntos[e])
+                info = json.loads(list(pos.values())[0])
                 # Guardamos los datos leidos que se han calculado previamente
                 angulo = info['angulo']
                 altura = info['altura']
@@ -219,11 +241,12 @@ def nuevo(request):
                     rotacion=rotacion,
                     dmax=dmax,
                     dmuerta=dmuerta,
-                    x_coord=coordenadas[pos]['lng'],
-                    y_coord=coordenadas[pos]['lat'],
+                    x_coord=coordenadas[list(pos.keys())[0]]['lng'],
+                    y_coord=coordenadas[list(pos.keys())[0]]['lat'],
                     mapa=map)[0]
                 c.save()
-        # # TODO: Mirar esto
+        # Se guardan los json de los mapas para que se puedan descargar si
+        # el usuario quiere
         with open(os.path.join(STATIC_DIR, FILES_URL, "mapa_" + map.nombre
                   + "_" + str(request.user) + ".json"), "w") as f:
             f.write(json.dumps(data))
@@ -244,7 +267,6 @@ def mapas(request):
         })
 
 
-# TODO: Ver si se puede poner @login_required
 @login_required(redirect_field_name='login_redirect')
 def camaras(request, camara_id):
     """
@@ -256,10 +278,11 @@ def camaras(request, camara_id):
     camara = Camara.objects.get(id=camara_id)
     return JsonResponse({
         "id": camara.id,
-        "nombre": camara.nombre,
+        "nombre_camara": camara.nombre,
         "resolucion": camara.resolucion,
         "distancia_focal": camara.distancia_focal,
         "sensor": camara.get_sensor_display(),
+        "precio": camara.precio,
         "inclinacion": 70,
         "altura": 4,
         "rotacion": 0
@@ -316,6 +339,7 @@ def editar(request, mapa_id):
                 "distancia_focal": cam.distancia_focal,
                 "sensor": cam.get_sensor_display(),
                 "nombre_camara": cam.nombre,
+                "precio": cam.precio,
                 "angulo": e.angulo,
                 "inclinacion": e.inclinacion,
                 "rotacion": e.rotacion,
@@ -335,6 +359,7 @@ def importar(request):
         return render(request, "camaras/importar.html")
 
 
+@login_required(redirect_field_name="login_redirect")
 def editarimportado(request, nombre_mapa):
     try:
         mapa = Mapa.objects.get(nombre=nombre_mapa, usuario=request.user)
@@ -365,3 +390,22 @@ def eliminar(request):
         except(Mapa.DoesNotExist):
             pass
         return redirect(reverse('camaras:mapas'))
+
+
+@login_required(redirect_field_name='login_redirect')
+def miscamaras(request):
+    if request.user.is_superuser:
+        if request.method == 'GET':
+            return render(request, "camaras/miscamaras.html", {
+                "camaras": mostrarCamarasPorFocal()
+            })
+        elif request.method == 'POST':
+            data = json.loads(request.body)
+            try:
+                Camara.objects.get(id=data['eliminar']).delete()
+            except(Camara.DoesNotExist):
+                pass
+            return redirect(reverse('camaras:miscamaras'))
+    else:
+        # TODO: error de acceso prohibido
+        return HttpResponseNotFound()

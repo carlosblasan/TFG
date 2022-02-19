@@ -3,12 +3,34 @@
 {% block title %}
 Nueva cámara
 {% endblock %}
-{% block camara-active %} class="nav-link active" {% endblock %}
+{% block new-camera-active %} class="nav-link active" {% endblock %}
 {% block body %}
 <form method="post" action="{% url 'camaras:nuevacamara' %}">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" name="guardar" value="Guardar cámara">
+    <div class="mb-3">
+        <label for="nombre" class="form-label">
+            Nombre de la cámara
+        </label>
+        <input autofocus name="nombre" type="text" class="form-control" id="nombre">
+        <label for="resolucion" class="form-label">
+            Resolución
+        </label>
+        {{form.resolucion}}
+        <label for="distancia_focal" class="form-label">
+            Distancia focal
+        </label>
+        <input name="distancia_focal" type="number" class="form-control" id="distancia_focal" min="1" max="10">
+        <label for="sensor" class="form-label">
+            Tamaño del sensor
+        </label>
+        {{ form.sensor }}
+        <label for="precio" class="form-label">
+            Precio de la cámara
+        </label>
+        <input name="precio" type="number" class="form-control" id="precio" min="0" step="0.01">
+    </div>
+    <input type="submit" class="btn btn-primary" name="guardar" value="Guardar cámara"/>
+
 </form>
 
 {% endblock %}

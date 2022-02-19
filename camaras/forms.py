@@ -25,9 +25,22 @@ class LoginForm(forms.Form):
 
 
 class CameraForm(forms.ModelForm):
+    tup_res = []
+    tup_sen = []
+    for res in Camara.RESOLUCIONES:
+        tup_res.append((res[0], res[1]+" (" + res[0] + ") "))
+    for sen in Camara.SENSOR:
+        tup_sen.append((sen[0], sen[1]+" (" + sen[0] + "\") "))
     nombre = forms.CharField(label="Nombre cámara", max_length=128)
-    resolucion = forms.CharField(widget=forms.Select())
+    distancia_focal = forms.IntegerField(min_value=1, max_value=10)
+    resolucion = forms.ChoiceField(
+                widget=forms.Select(attrs={'class': "form-select"}),
+                choices=tup_res)
+    sensor = forms.ChoiceField(widget=forms.Select(
+                                            attrs={'class': "form-select"}),
+                               choices=tup_sen)
+    precio = forms.DecimalField(min_value=0, max_digits=10)
 
     class Meta:
         model = Camara
-        fields = ('nombre',)
+        fields = ('nombre', 'precio')

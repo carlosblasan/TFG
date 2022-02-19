@@ -5,6 +5,9 @@ Mis mapas
 {% endblock %}
 {% block mapas-active %} class="nav-link active" {% endblock %}
 {% block body %}
+{% if not lista_mapas %}
+<h2 class="display-2">No hay mapas para mostrar</h2>
+{% endif %}
   <div class="container-fluid">
     <div class="row">
       {% for e in lista_mapas %}

@@ -69,11 +69,21 @@
                     </li>
                     {% if user.is_superuser %}
                     <li class="nav-item">
-                        <a {% block camara-active %} class="nav-link" {% endblock %} href="{% url 'camaras:nuevacamara' %}">
+                        <a {% block new-camera-active %} class="nav-link" {% endblock %} href="{% url 'camaras:nuevacamara' %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/>
+                              </svg>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera-video-fill" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
                               </svg>
                               Añadir nueva camara</a>
+                    </li>
+                    <li class="nav-item">
+                        <a {% block camaras-active %} class="nav-link" {% endblock %} href="{% url 'camaras:miscamaras' %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera-video-fill" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5z"/>
+                              </svg>
+                              Consultar cámaras</a>
                     </li>
                     <div id="logout" class="justify-content-end">
                         <span class="navbar-text">
