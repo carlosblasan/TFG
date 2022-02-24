@@ -49,6 +49,9 @@ def registro(request):
     elif request.method == 'POST':
         register_form = RegisterForm(data=request.POST)
         if register_form.is_valid():
+            if (register_form.cleaned_data["password"] !=
+                    register_form.cleaned_data["repeat_password"]):
+                return HttpResponseNotFound()
             # Se guarda el formulario para crear un usuario
             usuario = register_form.save()
             # Se le guarda la contrasena
@@ -69,8 +72,12 @@ def login_view(request):
     Vista que loguea a un usuario en la aplicacion
     """
     if request.user.is_authenticated:
-        return HttpResponseNotFound()
-        # TODO: mostrar error de usuario ya iniciado
+        return render(request, "camaras/error.html", {
+            "error_title": "Error",
+            "error_body": "Ya has iniciado sesión en la aplicación. \
+                        Si quieres iniciar sesión con otro usuario \
+                        primero cierra la sesión actual",
+        })
     context = dict()
     context['login_form'] = LoginForm()
     # Si el metodo es GET, se muestra al usuario el formulario de login
@@ -182,13 +189,14 @@ def nuevo(request):
         puntos = data['content']
         # Obtenemos el mapa de la base de datos a partir de su nombre,
         # si existe
-        # try:
-        #     map = Mapa.objects.get_or_create(
-        #             nombre=data['nombre'],
-        #             usuario=request.user)[0]
+        try:
+            map = Mapa.objects.get(
+                    nombre=data['nombre'],
+                    usuario=request.user)
+            map.delete()
         # Si el mapa no existia previamente, lo creamos
-        # except Mapa.DoesNotExist:
-        Mapa.objects.get(nombre=data['nombre'], usuario=request.user).delete()
+        except Mapa.DoesNotExist:
+            map = Mapa()
         map = Mapa(nombre=data['nombre'], usuario=request.user)
         # Guardamos la miniatura del mapa en la base de datos y guardamos
         # todo el mapa

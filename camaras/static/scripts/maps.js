@@ -178,7 +178,6 @@ function enviaVariable(nombre_mapa) {
             'Accept': 'application/json'
            },
         body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage, "imagen":imagen}),
-        
     }).then(response=> {
         if (response.redirected) {
             window.location.href = response.url;
@@ -233,6 +232,7 @@ function borraCirculos(map,id) {
 }
 
 function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
+    console.log("dibujando circulo ".concat(id))
     map.addSource("circle".concat(id), createGeoJSONCircle([longlat.lng,longlat.lat], angulo, dmax/1000, rot));
     map.addLayer({
         "id": "circle".concat(id),
@@ -255,7 +255,6 @@ function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
             "fill-opacity": 0.3
         }
     });
-    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
 
 function eliminarMapa(map_id) {
@@ -287,6 +286,7 @@ function eliminarCamara(cam_id) {
         window.location.href = response.url;
     })
 }
+
 
 function cargaInfo() {
     return info = {
@@ -356,6 +356,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     
     m.setLngLat([longlat.lng,longlat.lat]).addTo(map);
     marker.push({"position_id": position_id, "marker":m})
+    
     m.getElement().addEventListener('click', (e) => {
         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(e.target.id))).posicion
         camara_id = parseInt(e.target.id.split('-')[0])
@@ -380,7 +381,6 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     m.on('dragstart', function(e){
         camara_id = e.target._element.id.split('-')[0]
         colocada = e.target._element.id.split('-')[1]
-        console.log(camara_actual)
         if(!carga_mapa){
             datos=solicita_info(camara_id)
             get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
@@ -432,12 +432,33 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         window.sessionStorage.setItem("posicion_".concat(position_id), JSON.stringify({"posicion":longlat}))     
         editar(datos, e.target._element.id)
         dibujaCirculos(map, e.target._element.id, longlat, angulo, dmax, dmuerta,rotacion)
+        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
     }) 
 
     if(carga_mapa){
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
+        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
     }
+    console.log(marker)
+    document.getElementById("eliminar_camara_mapa").addEventListener("click", ()=>{
+        console.log(marker)
+        console.log({"position_id": position_id, "marker":m})
+        position_id = ''.concat(camara_id).concat('-').concat(colocada)
+        if(marker.filter((i)=>i.position_id === position_id).length>0){
+            console.log("Se va a borrar el circulo ".concat(position_id))   
+            borraCirculos(map, position_id)
+            //m.remove()
+            document.getElementById(position_id).remove()
+            console.log(marker)
+            document.getElementById("editar").style.display = "none"
+            marker=marker.filter((item) => item.position_id !== position_id)
+            console.log(marker)
+        }
+    
+    })
 }
 
 
@@ -528,7 +549,6 @@ function cargar_mapa(map, info_mapa) {
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
 
-
 // Inicializa el mapa que se va a mostrar en la web
 const map_init = ubicacion => {
     window.sessionStorage.clear();
@@ -545,7 +565,6 @@ const map_init = ubicacion => {
         map.setCenter([ubicacion.coords.longitude, ubicacion.coords.latitude])
         map.setZoom(18)
     }
-    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
     //Canvas2Image.saveAsPNG(imagen)
 
     if(estilo) {
@@ -561,6 +580,7 @@ const map_init = ubicacion => {
             }
         }
     }
+
     /**
      * Si se introducen las coordenada por medio del formulario
     */
@@ -605,6 +625,8 @@ const map_init = ubicacion => {
                 editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
                 rot = datos.rotacion
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
+                imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
             } else {
                 document.getElementById("error").style.display = "block"
                 document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
@@ -618,7 +640,7 @@ const map_init = ubicacion => {
     }));
     map.addControl(new mapboxgl.NavigationControl());
     map.on('load', ()=>{
-
+        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
         // Cargar el mapa
         let map_id = document.getElementById("edit_mapa_id").innerHTML
         if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
@@ -673,6 +695,8 @@ const map_init = ubicacion => {
                     borraCirculos(map, ''.concat(camara_id).concat("-").concat(colocada))
                     longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
+                    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
                     info = {
                         "angulo": angulo,
                         "altura": parseInt(e.srcElement.value),
@@ -706,6 +730,8 @@ const map_init = ubicacion => {
                     longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
 
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
+                    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
                     info = {
                         "angulo": angulo,
                         "altura": altura,
@@ -746,6 +772,8 @@ const map_init = ubicacion => {
                     longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
 
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, parseInt(e.srcElement.value))
+                    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
                     info = {
                         "angulo": angulo,
                         "altura": altura,
@@ -766,6 +794,8 @@ const map_init = ubicacion => {
                 }
             
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
+                imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+
             }
             
         }
@@ -813,6 +843,7 @@ function editar(datos, id) {
     let dist = document.getElementById("dist_focal")
     let _precio = document.getElementById("precio_camara")
     let angl = document.getElementById("angulo")
+    document.getElementById("camara_id_eliminar").innerHTML=id
     document.getElementById("rotacion").value = datos.rotacion
     document.getElementById("rotacion_camara").innerHTML = datos.rotacion
     document.getElementById("altura").value = datos.altura

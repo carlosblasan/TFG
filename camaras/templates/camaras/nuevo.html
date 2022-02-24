@@ -28,7 +28,7 @@ Crear nuevo mapa
                     </ul>
                   </li>
                   <li class="nav-item">
-                        <button onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>                    
+                        <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>                    
                   </li>
                 </ul>
                   
@@ -43,19 +43,21 @@ Crear nuevo mapa
         <div id="lateral" class="col-xl-2">
             <div id="editar" class="container-fluid">
                 Editar cámara <span id="nombre_camara"></span>. 
+                <span id="camara_id_eliminar" hidden></span>
                 Tiene un precio de <span id="precio_camara"></span> €
                 <br/>
-                <ul>
-                    <li>Distancia focal: <span id="dist_focal"></span>mm</li>
-                    <li>Ángulo de apertura: <span id="angulo"></span>º</li>
-                    <li><label for="altura" class="form-label">Altura de la cámara: </label> <span id="altura_camara">4</span>m
+                <ul class="list-group">
+                    <li class="list-group-item">Distancia focal: <span id="dist_focal"></span>mm</li>
+                    <li class="list-group-item">Ángulo de apertura: <span id="angulo"></span>º</li>
+                    <li class="list-group-item"><label for="altura" class="form-label">Altura de la cámara: </label> <span id="altura_camara">4</span>m
                         <input type="range" class="form-range" min="0" max="15" value="4" step="1" id="altura"></li>
-                    <li><label for="inclinacion" class="form-label">Inclinación de la cámara: </label> <span id="inclinacion_camara">70</span>º
+                    <li class="list-group-item"><label for="inclinacion" class="form-label">Inclinación de la cámara: </label> <span id="inclinacion_camara">70</span>º
                         <input type="range" class="form-range" min="0" max="89" value="70" step="1" id="inclinacion"></li>
-                    <li><label for="rotacion" class="form-label">Rotación de la cámara: </label> <span id="rotacion_camara">0</span>º
+                    <li class="list-group-item"><label for="rotacion" class="form-label">Rotación de la cámara: </label> <span id="rotacion_camara">0</span>º
                       <input type="range" class="form-range" min="0" max="360" value="0" step="1" id="rotacion"></li>
-                      <li>Distancia muerta: <span id="dmuerta"></span>m</li>
-                      <li>Distancia máxima: <span id="dmax"></span>m</li>
+                      <li class="list-group-item">Distancia muerta: <span id="dmuerta"></span>m</li>
+                      <li class="list-group-item">Distancia máxima: <span id="dmax"></span>m</li>
+                      <button type="button" id="eliminar_camara_mapa" class="btn btn-danger">Eliminar cámara</button>
                 </ul>
 
             </div>

@@ -7,7 +7,33 @@ Registrarse
 {% block body %}
     <form method="post" action="{% url 'camaras:registro' %}">
         {% csrf_token %}
-        {{ register_form.as_p }}
-        <input type="submit" name="registro" value="Registrarse">
+        <div class="mb-3">
+            <label for="first_name" class="form-label">
+                Nombre
+            </label>
+            <input autofocus name="first_name" type="text" class="form-control" id="first_name">
+            <label for="last_name" class="form-label">
+                Apellidos
+            </label>
+            <input name="last_name" type="text" class="form-control" id="last_name">
+            <label for="email" class="form-label">
+                Email
+            </label>
+            <input name="email" type="email" class="form-control" id="email">
+            <label for="username" class="form-label">
+                Usuario
+            </label>
+            <input name="username" type="text" class="form-control" id="username">
+            <label for="password" class="form-label">
+                Contraseña
+            </label>
+            <input name="password" type="password" class="form-control" id="password">
+            <label for="repeat_password" class="form-label">
+                Repite la contraseña
+            </label>
+            <input name="repeat_password" type="password" class="form-control" id="repeat_password">
+
+        </div>
+        <input type="submit" class="btn btn-primary" name="registro" value="Registrarse">
     </form>
 {% endblock %}
