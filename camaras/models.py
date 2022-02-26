@@ -1,8 +1,8 @@
+from platform import mac_ver
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (MinValueValidator,
-                                    MaxValueValidator,
-                                    DecimalValidator)
+                                    MaxValueValidator)
 
 
 class Usuario(AbstractUser):
@@ -30,7 +30,10 @@ class Camara(models.Model):
     )
     nombre = models.CharField(max_length=128)
     # tipo = models.CharField(max_length=128)
-    distancia_focal = models.IntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(10)])
+    distancia_focal = models.IntegerField(default=5,
+                                          validators=[
+                                            MinValueValidator(1),
+                                            MaxValueValidator(10)])
     resolucion = models.CharField(max_length=20,
                                   choices=RESOLUCIONES,
                                   default="HD")
@@ -45,6 +48,7 @@ class Mapa(models.Model):
     nombre = models.CharField(max_length=128)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     imagen = models.ImageField(null=True, blank=True)
+    precio = models.DecimalField(decimal_places=2, max_digits=10)
 
     class Meta:
         unique_together = ('nombre', 'usuario',)

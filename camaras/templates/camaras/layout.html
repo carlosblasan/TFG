@@ -28,7 +28,7 @@
     
         {% if user.is_authenticated %}
             <h5>Bienvenido, {{user}}.</h5>
-            {% endif %}
+        {% endif %}
         
         <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
             <div class="container-fluid">
@@ -79,6 +79,7 @@
                               </svg>
                               Añadir nueva camara</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a {% block camaras-active %} class="nav-link" {% endblock %} href="{% url 'camaras:miscamaras' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera-video-fill" viewBox="0 0 16 16">
@@ -97,7 +98,7 @@
                         </span>
                       </div>
                     
-                    {% endif %}
+                    
                     
                 {% else %}
                     <li class="nav-item">
@@ -123,7 +124,22 @@
     </div>
   </nav>
 
-        {% block body %}{% endblock %}
+    {% if error_title %}
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">{{ error_title }}</h4>
+            <p>
+                {{ error_body }}
+            </p>
+            <hr>
+            <p class="mb-0">
+                
+                {% if error_url %}
+                    <a class="btn btn-danger" href="{% url error_url %}">{{ error_info }} aquí</a>
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+    {% block body %}{% endblock %}
         <script src="{% static 'scripts/maps.js' %}"></script>
     </body>
 </html>

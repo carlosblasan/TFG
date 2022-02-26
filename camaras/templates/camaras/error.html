@@ -12,6 +12,9 @@
     <hr>
     <p class="mb-0">
         {{ error_info }}
+        {% if errro_url %}
+            <a class="btn btn-primary" href="{% url error_url %}">aquí</a>
+        {% endif %}
     </p>
   </div>
 {% endblock %}

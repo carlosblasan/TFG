@@ -1,13 +1,12 @@
 import json
 import os
-from django.http.response import HttpResponseNotFound
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from TFG.settings import FILES_URL, STATIC_DIR
 from .forms import LoginForm, RegisterForm, CameraForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Colocada, Mapa, Camara
+from .models import Colocada, Mapa, Camara, Usuario
 from django.http import JsonResponse
 
 
@@ -26,7 +25,13 @@ def index(request):
     """
     Funcion que muestra la vista principal de la aplicacion
     """
-    return render(request, "camaras/index.html")
+    if request.method == 'GET':
+        return render(request, "camaras/index.html")
+    else:
+        return render(request, "camaras/index.html", {
+            "error_title": "Acceso incorrecto",
+            "error_body": "Has intentado acceder a una zona no autorizada."
+        })
 
 
 def registro(request):
@@ -35,7 +40,14 @@ def registro(request):
     """
     # Si el usuario ya tiene la sesion iniciada no puede acceder aqui
     if request.user.is_authenticated:
-        return HttpResponseNotFound()  # TODO: Error explicando que ha pasado
+        return render(request, "camaras/login.html", {
+            "error_title": "Sesión ya iniciada",
+            "error_body": "El usuario " + str(request.user) + " ya ha iniciado \
+                           sesión en la aplicación. Para crear un nuevo \
+                           usuario, primero cierra la sesión actual.",
+            "error_info": "Cierra sesión desde ",
+            "error_url": "camaras:logout"
+        })
 
     # Si el metodo es GET, se muestra una pagina con el formulario de registro
     if request.method == 'GET':
@@ -48,10 +60,25 @@ def registro(request):
     # los datos que han sido rellenados
     elif request.method == 'POST':
         register_form = RegisterForm(data=request.POST)
+        try:
+            Usuario.objects.get(username=request.POST['username'])
+            return render(request, "camaras/registro.html", {
+                "error_title": "El nombre de usuario ya existe.",
+                "error_body": "Prueba a utilizar otro nombre de usuario \
+                    alternando mayúsculas, minúsculas o números."
+            })
+        except Usuario.DoesNotExist:
+            pass
+        print(register_form.errors)
         if register_form.is_valid():
             if (register_form.cleaned_data["password"] !=
                     register_form.cleaned_data["repeat_password"]):
-                return HttpResponseNotFound()
+                return render(request, "camaras/registro.html", {
+                    "error_title": "Contraseña incorrecta",
+                    "error_body": "Las contraseñas introducidas no coinciden. \
+                                   Vuelve a intentarlo y vigila mayúsculas \
+                                   y minúsculas.",
+                })
             # Se guarda el formulario para crear un usuario
             usuario = register_form.save()
             # Se le guarda la contrasena
@@ -63,8 +90,16 @@ def registro(request):
 
         else:
             # Si el formulario no es valido
-            return HttpResponseNotFound()
-            # TODO: mostrar pagina de error explicando que ha pasado
+            return render(request, "camaras/registro.html", {
+                    "error_title": "Error desconocido",
+                    "error_body": "Comprueba que has completado el formulario \
+                                   correctamente.",
+                })
+    else:
+        return render(request, "camaras/index.html", {
+            "error_title": "Acceso incorrecto",
+            "error_body": "Has intentado acceder a una zona no autorizada."
+        })
 
 
 def login_view(request):
@@ -72,11 +107,13 @@ def login_view(request):
     Vista que loguea a un usuario en la aplicacion
     """
     if request.user.is_authenticated:
-        return render(request, "camaras/error.html", {
-            "error_title": "Error",
+        return render(request, "camaras/index.html", {
+            "error_title": "sesión ya iniciada",
             "error_body": "Ya has iniciado sesión en la aplicación. \
                         Si quieres iniciar sesión con otro usuario \
-                        primero cierra la sesión actual",
+                        primero cierra la sesión actual.",
+            "error_info": "Cierra sesión desde ",
+            "error_url": "camaras:logout"
         })
     context = dict()
     context['login_form'] = LoginForm()
@@ -106,8 +143,12 @@ def login_view(request):
                     # Se muestra la pagina principal
                     return redirect(reverse('camaras:index'))
         else:
-            return HttpResponseNotFound()
-            # TODO: Error de que el usuario no existe
+            return render(request, "camaras/login.html", {
+                "error_title": "Usuario no encontrado",
+                "error_body": "El usuario introducido no se encuentra en \
+                            nuestra base de datos. Comprueba mayúsculas y \
+                            minúsculas."
+            })
 
     return render(request, "camaras/login.html", context)
 
@@ -130,7 +171,11 @@ def nuevacamara(request):
     """
     # Error si el usuario que ha accedido no es el administrador
     if not request.user.is_superuser:
-        return HttpResponseNotFound()  # TODO Error de acceso prohibido
+        return render(request, "camaras/index.html", {
+            "error_title": "Acceso prohibido",
+            "error_body": "Solo los administradores del sitio pueden \
+                           añadir cámaras."
+        })
     # Si el metodo es GET, se muestra el formulario de creacion de una
     # nueva camara
     if request.method == 'GET':
@@ -145,8 +190,11 @@ def nuevacamara(request):
 
         if not camera_form.is_valid():
             return render(request, "camaras/nuevacamara.html", {
-                          "form": camera_form,
-                          })
+                "error_title": "Formulario incorrecto",
+                "error_body": "Algún campo no es correcto o lo has dejado en blanco. \
+                               Por favor, revisa el formulario.",
+                "form": camera_form
+            })
         else:
             distancia_focal = camera_form.cleaned_data['distancia_focal']
             nombre = camera_form.cleaned_data['nombre']
@@ -162,7 +210,10 @@ def nuevacamara(request):
                     )
             camara.save()
             return redirect(reverse('camaras:index'))
-    return HttpResponseNotFound()
+    return render(request, "camaras/index.html", {
+                "error_title": "Acceso incorrecto",
+                "error_body": "Has intentado acceder a una zona no autorizada."
+            })
 
 
 @login_required(redirect_field_name='login_redirect')
@@ -197,7 +248,9 @@ def nuevo(request):
         # Si el mapa no existia previamente, lo creamos
         except Mapa.DoesNotExist:
             map = Mapa()
-        map = Mapa(nombre=data['nombre'], usuario=request.user)
+        map = Mapa(nombre=data['nombre'],
+                   usuario=request.user,
+                   precio=data['precio'])
         # Guardamos la miniatura del mapa en la base de datos y guardamos
         # todo el mapa
         map.imagen = data['imagen']
@@ -259,6 +312,11 @@ def nuevo(request):
                   + "_" + str(request.user) + ".json"), "w") as f:
             f.write(json.dumps(data))
         return redirect(reverse('camaras:mapas'))
+    else:
+        return render(request, "camaras/index.html", {
+            "error_title": "Acceso incorrecto",
+            "error_body": "Has intentado acceder a una zona no autorizada."
+        })
 
 
 @login_required(redirect_field_name='login_redirect')
@@ -273,6 +331,11 @@ def mapas(request):
         return render(request, "camaras/mapas.html", {
             "lista_mapas": mapas
         })
+    else:
+        return render(request, "camaras/index.html", {
+                "error_title": "Acceso incorrecto",
+                "error_body": "Has intentado acceder a una zona no autorizada."
+                })
 
 
 @login_required(redirect_field_name='login_redirect')
@@ -309,11 +372,28 @@ def editarmapa(request, mapa_id):
         # Se muestra la misma pagina que para un mapa nuevo pero se envia
         # una variable con el nombre del mapa, lo que hara que se muestren
         # las camaras automaticamente
+        try:
+            mapa = Mapa.objects.get(id=mapa_id)
+        # Si el mapa no existe, la pagina a la que se accede tampoco
+        except Mapa.DoesNotExist:
+            return render(request, "camaras/index.html", {
+                    "error_title": "Mapa no encontrado",
+                    "error_body": "El mapa solicitado no existe en la base de datos. \
+                        Para ver un listado de los posibles mapas, ve a \
+                            la sección \"Mis mapas\".",
+                    "error_info": "Consulta tus mapas desde ",
+                    "error_url": "camaras:mapas"
+                })
         return render(request, "camaras/nuevo.html", {
-            "nombre": Mapa.objects.get(id=mapa_id).nombre,
+            "nombre": mapa.nombre,
             "mapa": mapa_id,
             "camaras": camaras
         })
+    else:
+        return render(request, "camaras/index.html", {
+                "error_title": "Acceso incorrecto",
+                "error_body": "Has intentado acceder a una zona no autorizada."
+                })
 
 
 def editar(request, mapa_id):
@@ -328,8 +408,15 @@ def editar(request, mapa_id):
         try:
             mapa = Mapa.objects.get(id=mapa_id)
         # Si el mapa no existe, la pagina a la que se accede tampoco
-        except Mapa.DoesNotExist():
-            return HttpResponseNotFound()
+        except Mapa.DoesNotExist:
+            return render(request, "camaras/index.html", {
+                    "error_title": "Mapa no encontrado",
+                    "error_body": "El mapa solicitado no existe en la base de datos. \
+                        Para ver un listado de los posibles mapas, ve a \
+                            la sección \"Mis mapas\".",
+                    "error_info": "Consulta tus mapas desde ",
+                    "error_url": "camaras:mapas"
+                })
         # Se obtienen todas las camaras colocadas en dicho mapa
         c = Colocada.objects.filter(mapa=mapa)
         # Si el mapa no tiene camaras colocadas, el centro se mantiene en None,
@@ -339,32 +426,54 @@ def editar(request, mapa_id):
             centro = [sum(punto.x_coord for punto in c)/c.count(),
                       sum(punto.y_coord for punto in c)/c.count()]
         for e in c:
-            cam = Camara.objects.get(id=e.camara.id)
-            camaras.append({
-                "posicion": {"lng": e.x_coord, "lat": e.y_coord},
-                "camara_id": cam.id,
-                "colocada": e.id,
-                "distancia_focal": cam.distancia_focal,
-                "sensor": cam.get_sensor_display(),
-                "nombre_camara": cam.nombre,
-                "precio": cam.precio,
-                "angulo": e.angulo,
-                "inclinacion": e.inclinacion,
-                "rotacion": e.rotacion,
-                "altura": e.altura,
-                "dmax": e.dmax,
-                "dmuerta": e.dmuerta
-                })
+            try:
+                cam = Camara.objects.get(id=e.camara.id)
+                camaras.append({
+                    "posicion": {"lng": e.x_coord, "lat": e.y_coord},
+                    "camara_id": cam.id,
+                    "colocada": e.id,
+                    "distancia_focal": cam.distancia_focal,
+                    "sensor": cam.get_sensor_display(),
+                    "nombre_camara": cam.nombre,
+                    "precio": cam.precio,
+                    "angulo": e.angulo,
+                    "inclinacion": e.inclinacion,
+                    "rotacion": e.rotacion,
+                    "altura": e.altura,
+                    "dmax": e.dmax,
+                    "dmuerta": e.dmuerta
+                    })
+            except Camara.DoesNotExist:
+                return render(request, "camaras/index.html", {
+                        "error_title": "Cámara no encontrada",
+                        "error_body": "La cámara solicitada no existe en la base de datos. \
+                            Para ver un listado de las posibles cámaras, ve a \
+                                la sección \"Consultar cámaras\".",
+                        "error_info": "Consulta las cámaras desde ",
+                        "error_url": "camaras:miscamaras"
+                    })
         return JsonResponse({
             "centro": centro,
             "camaras": camaras
         }, status=200)
+    else:
+        return render(request, "camaras/index.html", {
+                    "error_title": "Acceso incorrecto",
+                    "error_body": "Has intentado acceder a una zona no \
+                        autorizada."
+                })
 
 
 @login_required(redirect_field_name='login_redirect')
 def importar(request):
     if request.method == 'GET':
         return render(request, "camaras/importar.html")
+    else:
+        return render(request, "camaras/index.html", {
+                    "error_title": "Acceso incorrecto",
+                    "error_body": "Has intentado acceder a una zona no \
+                        autorizada."
+                })
 
 
 @login_required(redirect_field_name="login_redirect")
@@ -372,48 +481,74 @@ def editarimportado(request, nombre_mapa):
     try:
         mapa = Mapa.objects.get(nombre=nombre_mapa, usuario=request.user)
     except Mapa.DoesNotExist:
-        return HttpResponseNotFound()
-        # m = Mapa(nombre=nombre_mapa, usuario=request.user)
-        # m.save()
+        return render(request, "camaras/index.html", {
+                    "error_title": "Mapa no encontrado",
+                    "error_body": "El mapa solicitado no existe en la base de datos. \
+                        Para ver un listado de los posibles mapas, ve a \
+                            la sección \"Mis mapas\".",
+                    "error_info": "Consulta tus mapas desde ",
+                    "error_url": "camaras:mapas"
+                })
     if request.method == 'GET':
         try:
             camaras = Colocada.objects.filter(mapa=mapa)
         except Colocada.DoesNotExist:
-            return HttpResponseNotFound()
+            return render(request, "camaras/index.html", {
+                    "error_title": "Cámara no encontrada",
+                    "error_body": "La cámara solicitada no existe en la base de datos. \
+                        Para ver un listado de las posibles cámaras, ve a \
+                            la sección \"Consultar cámaras\".",
+                    "error_info": "Consulta las cámaras desde ",
+                    "error_url": "camaras:miscamaras"
+                })
         return redirect(reverse('camaras:nuevo'), {
             "nombre": nombre_mapa,
             "mapa": mapa.id,
-            "camaras": camaras,
+            "camaras": camaras
         })
+    else:
+        return render(request, "camaras/index.html", {
+                    "error_title": "Acceso incorrecto",
+                    "error_body": "Has intentado acceder a una zona no \
+                        autorizada."
+                })
 
 
 @login_required(redirect_field_name='login_redirect')
 def eliminar(request):
-    if request.method == 'GET':
-        return HttpResponseNotFound()  # TODO: mostrar error
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = json.loads(request.body)
         try:
-            Mapa.objects.get(id=data['eliminar']).delete()
-        except(Mapa.DoesNotExist):
+            mapa = Mapa.objects.get(id=data['eliminar'])
+            mapa.delete()
+        except Mapa.DoesNotExist:
             pass
         return redirect(reverse('camaras:mapas'))
+    else:
+        return render(request, "camaras/index.html", {
+                    "error_title": "Acceso incorrecto",
+                    "error_body": "Has intentado acceder a una zona no \
+                        autorizada."
+                })
 
 
 @login_required(redirect_field_name='login_redirect')
 def miscamaras(request):
-    if request.user.is_superuser:
-        if request.method == 'GET':
-            return render(request, "camaras/miscamaras.html", {
-                "camaras": mostrarCamarasPorFocal()
-            })
-        elif request.method == 'POST':
-            data = json.loads(request.body)
-            try:
-                Camara.objects.get(id=data['eliminar']).delete()
-            except(Camara.DoesNotExist):
-                pass
-            return redirect(reverse('camaras:miscamaras'))
+    if request.method == 'GET':
+        return render(request, "camaras/miscamaras.html", {
+            "camaras": mostrarCamarasPorFocal()
+        })
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            camara = Camara.objects.get(id=data['eliminar'])
+            camara.delete()
+        except Camara.DoesNotExist:
+            pass
+        return redirect(reverse('camaras:miscamaras'))
     else:
-        # TODO: error de acceso prohibido
-        return HttpResponseNotFound()
+        return render(request, "camaras/index.html", {
+                    "error_title": "Acceso incorrecto",
+                    "error_body": "Has intentado acceder a una zona no \
+                        autorizada."
+                })

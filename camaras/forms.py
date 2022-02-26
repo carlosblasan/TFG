@@ -9,13 +9,13 @@ class RegisterForm(forms.ModelForm):
     email = forms.EmailField(label="Email")
     username = forms.CharField(label="Nombre de usuario", max_length=128)
     password = forms.CharField(widget=PasswordInput, label="Contraseña")
-    confirm_password = forms.CharField(widget=PasswordInput,
-                                       label="Confirma tu contraseña")
+    repeat_password = forms.CharField(widget=PasswordInput,
+                                      label="Confirma tu contraseña")
 
     class Meta:
         model = Usuario
         fields = ('first_name', 'last_name', 'email',
-                  'username', 'password', 'confirm_password')
+                  'username', 'password', 'repeat_password')
 
 
 class LoginForm(forms.Form):

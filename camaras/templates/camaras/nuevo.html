@@ -22,13 +22,30 @@ Crear nuevo mapa
                         {% for k,v in camaras.items %}
                             <li><h6 class="dropdown-header">{{ k }}mm</h6></li>
                             {% for e in v %}
-                                <li id="camara_{{ e.id }}"><a class="dropdown-item" onclick="colocaCamara({{ e.id }})">{{ e }}</a></li>
+                                <li id="camara_{{ e.id }}"><a class="dropdown-item" onclick="colocaCamara({{ e.id }}, `{{e.nombre}}`, {{e.distancia_focal}})">{{ e }}</a></li>
                             {% endfor %}
                         {% endfor %}
                     </ul>
                   </li>
                   <li class="nav-item">
                         <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>                    
+                  </li>
+                  <li class="nav-link active">Precio del mapa: 
+                    <strong>
+                      <span id="precio_mapa">{% if precio %}{{ precio }}{% endif %}</span> €
+                    </strong>
+                  </li>
+                  &nbsp;
+                  &nbsp;
+                  &nbsp;
+                  &nbsp;
+                  &nbsp;
+                  &nbsp;
+                  &nbsp;
+
+                  <li class="nav-item">
+                     
+                    <span id="camara_seleccionada">Ninguna camara seleccionada</span>
                   </li>
                 </ul>
                   

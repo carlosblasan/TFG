@@ -100,10 +100,15 @@ var createGeoJSONCircle = function(center, angulo, radiusInKm, rotacion, points)
 };
 
 
+
 // Funcion que pone la variable camara a true si lo que se ha añadido es una camara al mapa
-function colocaCamara(cam){
+function colocaCamara(cam_id, nombre, dist_f){
     camara = true
-    camara_id = cam
+    camara_id = cam_id
+    document.getElementById("camara_seleccionada").innerHTML = "Nombre de la cámara seleccionada: ".concat(
+                    nombre).concat(
+                    ", distancia focal de ").concat(
+                    dist_f).concat("mm")
 }
 
 
@@ -169,6 +174,8 @@ function getCookie(name) {
 
 function enviaVariable(nombre_mapa) {
     let respuesta = window.prompt("Introduce un nombre para el mapa. Si ya existe, se reemplazará.",nombre_mapa)
+    console.log(document)
+    let p = parseFloat(document.getElementById("precio_mapa").innerHTML)
     fetch('/nuevo', {
         method:'POST',
         redirect: 'follow',
@@ -177,7 +184,7 @@ function enviaVariable(nombre_mapa) {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
            },
-        body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage, "imagen":imagen}),
+        body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage, "imagen":imagen, "precio": p}),
     }).then(response=> {
         if (response.redirected) {
             window.location.href = response.url;
@@ -304,6 +311,7 @@ function cargaInfo() {
 }
 
 function crea_camara(map,longlat, carga_mapa, camara_actual) {
+    console.log("Y una")
     if(!carga_mapa){
         rot=0
         colocada++                               
@@ -353,7 +361,11 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     
     info = cargaInfo()
     window.sessionStorage.setItem(position_id, JSON.stringify(info))
-    
+    prec = parseFloat(document.getElementById("precio_mapa").innerHTML)
+    if(!prec){
+        prec = 0
+    }
+    document.getElementById("precio_mapa").innerHTML = prec + parseFloat(info.precio)
     m.setLngLat([longlat.lng,longlat.lat]).addTo(map);
     marker.push({"position_id": position_id, "marker":m})
     
@@ -451,6 +463,10 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
             console.log("Se va a borrar el circulo ".concat(position_id))   
             borraCirculos(map, position_id)
             //m.remove()
+            
+            prec = parseFloat(document.getElementById("precio_mapa").innerHTML)
+            document.getElementById("precio_mapa").innerHTML = prec - precio
+            document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
             document.getElementById(position_id).remove()
             console.log(marker)
             document.getElementById("editar").style.display = "none"
