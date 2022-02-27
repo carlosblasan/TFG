@@ -34,6 +34,7 @@ let nombre_camara = null;
 let distancia_focal = null;
 let poligono = false
 let colocada_prev = 0
+let no_entrar = false
 
 /** Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
  * y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
@@ -144,6 +145,11 @@ function cargamapa(mapa_id){
     
 }
 
+
+// var modes = MapboxDraw.modes;
+// modes.static = this.setActionableState(); // default actionable state is false for all actions
+
+const modes = MapboxDraw.modes;
 const draw = new MapboxDraw({
     displayControlsDefault: false,
     // Select which mapbox-gl-draw control buttons to add to the map.
@@ -151,6 +157,7 @@ const draw = new MapboxDraw({
         polygon: true,
         trash: true
     },
+    
     
 });
 
@@ -244,7 +251,6 @@ function borraCirculos(map,id) {
 }
 
 function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
-    console.log("dibujando circulo ".concat(id))
     map.addSource("circle".concat(id), createGeoJSONCircle([longlat.lng,longlat.lat], angulo, dmax/1000, rot));
     map.addLayer({
         "id": "circle".concat(id),
@@ -315,8 +321,8 @@ function cargaInfo() {
     }
 }
 
-function crea_camara(map,longlat, carga_mapa, camara_actual) {
-    console.log("Y una")
+function crea_camara(map,longlat, carga_mapa, camara_actual) {  
+
     if(!carga_mapa){
         rot=0
         colocada = colocada_prev
@@ -336,7 +342,6 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     position_id = ''.concat(camara_id).concat('-').concat(colocada)
     puntoscamara.push({type:"Camara",geometry:{type:"Point",coordinates:[longlat.lng,longlat.lat]}})
     window.sessionStorage.setItem("posicion_".concat(position_id), JSON.stringify({"posicion":longlat}))
-    console.log(carga_mapa)
     if(!carga_mapa){
         datos=solicita_info(camara_id)
         sensor = datos.sensor
@@ -351,7 +356,6 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         nombre_camara = datos.nombre_camara
         distancia_focal = datos.distancia_focal
     } else {
-        console.log(camara_actual)
         sensor = camara_actual.sensor
         get_data(camara_actual.inclinacion, camara_actual.distancia_focal, camara_actual.altura, camara_actual.sensor.split("x")[0])
         angulo = angulo
@@ -364,7 +368,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         nombre_camara = camara_actual.nombre_camara
         distancia_focal = camara_actual.distancia_focal
     }
-    console.log(nombre_camara)
+
     
     info = cargaInfo()
     window.sessionStorage.setItem(position_id, JSON.stringify(info))
@@ -459,18 +463,16 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     }) 
 
     if(carga_mapa || poligono){
+        poligono = false
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 
     }
-    console.log(marker)
     document.getElementById("eliminar_camara_mapa").addEventListener("click", ()=>{
-        console.log(marker)
-        console.log({"position_id": position_id, "marker":m})
+
         position_id = ''.concat(camara_id).concat('-').concat(colocada)
-        if(marker.filter((i)=>i.position_id === position_id).length>0){
-            console.log("Se va a borrar el circulo ".concat(position_id))   
+        if(marker.filter((i)=>i.position_id === position_id).length>0){ 
             borraCirculos(map, position_id)
             //m.remove()
             
@@ -478,10 +480,8 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
             document.getElementById("precio_mapa").innerHTML = prec - precio
             document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
             document.getElementById(position_id).remove()
-            console.log(marker)
             document.getElementById("editar").style.display = "none"
             marker=marker.filter((item) => item.position_id !== position_id)
-            console.log(marker)
         }
     
     })
@@ -504,7 +504,7 @@ function handleFiles() {
                 contiene = true;
             }
         }
-        console.log(contiene)
+
         if(contiene) {
             numCamaras = 0
             c1 = 0
@@ -515,7 +515,6 @@ function handleFiles() {
                     pos = "posicion_".concat(Object.keys(content.content)[i])
                     posicion = content.content[pos]
                     info_cam = solicita_info(parseInt(Object.keys(content.content)[i].split('-')[0]))
-                    console.log(JSON.parse(posicion).posicion.lng)
                     c1 += parseFloat(JSON.parse(posicion).posicion.lng)
                     c2 += parseFloat(JSON.parse(posicion).posicion.lat)
                     datos_camara = JSON.parse(content.content[Object.keys(content.content)[i]])
@@ -537,7 +536,6 @@ function handleFiles() {
                 }
             }
             centro = {"lng":c1/numCamaras, "lat": c2/numCamaras}
-            console.log(centro)
             info = {
                 "centro": centro,
                 "camaras": camaras
@@ -569,7 +567,6 @@ function cargar_mapa(map, info_mapa) {
         precio = camara_actual.precio
         nombre_camara = camara_actual.nombre_camara
         distancia_focal = camara_actual.distancia_focal 
-        console.log(lista_camaras[i])
         crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i])
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
@@ -668,6 +665,7 @@ const map_init = ubicacion => {
     }));
     map.addControl(new mapboxgl.NavigationControl());
     map.on('load', ()=>{
+        
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
         // Cargar el mapa
         let map_id = document.getElementById("edit_mapa_id").innerHTML
@@ -684,6 +682,16 @@ const map_init = ubicacion => {
     map.on('mousemove', (e) => {
         
         document.getElementById('map').onclick = function() {
+            boton = document.getElementsByClassName("mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_polygon")[0]
+            if(boton.classList.contains("active")){
+                no_entrar = true
+                return
+            }
+
+            if(no_entrar){
+                no_entrar=false
+                return
+            }
             if(camara){
                 camara=false
                 estilo = false
@@ -820,7 +828,7 @@ const map_init = ubicacion => {
                     document.getElementById("dmax").innerHTML = Math.floor(dmax)
                     document.getElementById("rotacion").value = parseInt(e.srcElement.value)
                 }
-            
+
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
                 imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 
@@ -839,20 +847,34 @@ const map_init = ubicacion => {
             showUserHeading: true
         })
     );
+    
     map.addControl(draw);
-    draw.changeMode('simple_select')
+    modes.simple_select.onClick = function (state, e) {
+        return
+    };
+    modes.simple_select.onDrag = function (state, e) {
+        return
+    };
     map.on('draw.create', camarasArea);
-    map.on('draw.delete', camarasArea);
+    map.on('draw.delete', borraArea);
     //map.on('draw.update', camarasArea);
-    function camarasArea(e) {
-        console.log(e)
-        console.log(e.target._listeners.move)
-        
-        if(e.action == "change_coordinates" ||e.action == "move"){
-            
-            // TODO: BORRAR LAS CAMARAS Y LOS CIRCULOS Y DIBUJAR LOS NUEVOS
+
+    function borraArea(e){
+        vertices = e.target._markers
+        for(i=0; i<vertices.length;i++){
+            borraCirculos(map,vertices[i]._element.id)
+            prec = parseFloat(document.getElementById("precio_mapa").innerHTML)
+            document.getElementById("precio_mapa").innerHTML = prec - precio
+            document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
+            document.getElementById(vertices[i]._element.id).remove()
+            document.getElementById("editar").style.display = "none"
+            marker=marker.filter((item) => item.position_id !== vertices[i]._element.id)
         }
-        console.log(draw)
+    }
+
+    function camarasArea(e) {
+        
+        
         if(!camara_id){
             document.getElementById("error").style.display = "block"
             document.getElementById("error_message").innerHTML = "Debes seleccionar primero una cámara."
@@ -860,8 +882,7 @@ const map_init = ubicacion => {
             return
         }
         data = draw.getAll()
-        if (data.features.length>0){
-            poligono= true
+        if(data.features.length==1){
             puntos = data.features[0].geometry.coordinates[0]
             centro1=0
             centro2=0
@@ -873,12 +894,20 @@ const map_init = ubicacion => {
                 centro1 /= puntos.length
                 centro2 /= puntos.length
             
-                for(i=1;i<puntos.length-1;i++){
+                for(i=0;i<puntos.length-1;i++){
+                    poligono = true
                     longlat = {"lng": puntos[i][0], "lat": puntos[i][1]}
                     crea_camara(map, longlat, false, null)
                 }
+
             }
+        } else {
+            document.getElementById("editar").style.display = "none"
+            document.getElementById("error").style.display = "block"
+            document.getElementById("error_message").innerHTML = "Solo puedes dibujar un área por mapa."
+            draw.trash()
         }
+        
     }
 }
 
