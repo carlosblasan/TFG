@@ -69,7 +69,7 @@ def registro(request):
             })
         except Usuario.DoesNotExist:
             pass
-        print(register_form.errors)
+
         if register_form.is_valid():
             if (register_form.cleaned_data["password"] !=
                     register_form.cleaned_data["repeat_password"]):
@@ -108,7 +108,7 @@ def login_view(request):
     """
     if request.user.is_authenticated:
         return render(request, "camaras/index.html", {
-            "error_title": "sesión ya iniciada",
+            "error_title": "Sesión ya iniciada",
             "error_body": "Ya has iniciado sesión en la aplicación. \
                         Si quieres iniciar sesión con otro usuario \
                         primero cierra la sesión actual.",
@@ -274,8 +274,6 @@ def nuevo(request):
             # restante
         for e in puntos.keys():
             datos = json.loads(puntos[e])
-            # print(datos)
-            # print(posiciones_camaras_id)
             if 'posicion' not in datos.keys():
                 # Eliminamos de la lista auxiliar el id del punto del que vamos
                 # a guardar su informacion

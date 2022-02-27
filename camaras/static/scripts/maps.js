@@ -322,7 +322,9 @@ function cargaInfo() {
 }
 
 function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {  
-
+    estilo = false
+    document.getElementById("estilo_mapa").onclick = function(){void(0)}
+    document.getElementById("estilo_mapa").style.color = "#E5E6FF"
     if(!carga_mapa){
         rot=0
         colocada = colocada_prev
@@ -866,14 +868,9 @@ const map_init = ubicacion => {
     map.on('draw.delete', borraArea);
     
     function borraArea(e){
-        console.log(draw)
-        console.log(e)
         vertices = e.target._markers
-        console.log(vertices)
         j=0
         for(i=0; vertices[j] && i<e.features[0].geometry.coordinates[0].length;i++){
-            console.log(i)
-            console.log(j)
             while(vertices[j] && !(e.features[0].geometry.coordinates[0][i][0] == vertices[j]._lngLat.lng &&
                 e.features[0].geometry.coordinates[0][i][1] == vertices[j]._lngLat.lat)){
                     j++
@@ -881,7 +878,6 @@ const map_init = ubicacion => {
             if(!vertices[j]){
                 continue
             }
-            console.log(vertices)
             borraCirculos(map,vertices[j]._element.id)
             datos=solicita_info(vertices[j]._element.id.split('-')[0])
             prec = parseFloat(document.getElementById("precio_mapa").innerHTML)
@@ -933,7 +929,6 @@ const map_init = ubicacion => {
                         trae_rot+=180
                         mas180=false
                     }
-                    console.log(trae_rot)
                     crea_camara(map, longlat, false, null, trae_rot)
                 }
 
