@@ -321,7 +321,7 @@ function cargaInfo() {
     }
 }
 
-function crea_camara(map,longlat, carga_mapa, camara_actual) {  
+function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {  
 
     if(!carga_mapa){
         rot=0
@@ -367,6 +367,10 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         precio = camara_actual.precio
         nombre_camara = camara_actual.nombre_camara
         distancia_focal = camara_actual.distancia_focal
+    }
+    if(trae_rotacion){
+        rotacion=trae_rotacion
+        rot = trae_rotacion
     }
 
     
@@ -567,7 +571,7 @@ function cargar_mapa(map, info_mapa) {
         precio = camara_actual.precio
         nombre_camara = camara_actual.nombre_camara
         distancia_focal = camara_actual.distancia_focal 
-        crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i])
+        crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i], null)
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
@@ -628,7 +632,7 @@ const map_init = ubicacion => {
                 estilo = false
                 document.getElementById("estilo_mapa").onclick = function(){void(0)}
                 document.getElementById("estilo_mapa").style.color = "#E5E6FF"
-                crea_camara(map,longlat,false, null)
+                crea_camara(map,longlat,false, null, null)
                 
                 datos=solicita_info(camara_id)
                 
@@ -693,12 +697,14 @@ const map_init = ubicacion => {
                 return
             }
             if(camara){
+        document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
+
                 camara=false
                 estilo = false
                 document.getElementById("estilo_mapa").onclick = function(){void(0)}
                 document.getElementById("estilo_mapa").style.color = "#E5E6FF"
                 longlat = e.lngLat.wrap()
-                crea_camara(map,longlat,false, null)
+                crea_camara(map,longlat,false, null, null)
              
                 datos=solicita_info(camara_id)
                 get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
@@ -749,7 +755,7 @@ const map_init = ubicacion => {
                     window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))
                     document.getElementById("dmuerta").innerHTML = Math.floor(dmuerta)
                     document.getElementById("dmax").innerHTML = Math.floor(dmax)
-                    document.getElementById("rotacion_camara").innerHTML = rot
+                    document.getElementById("rotacion_camara").innerHTML = parseInt(rot)
                 }
                 editar(datos,''.concat(camara_id).concat("-").concat(colocada))
 
@@ -784,7 +790,7 @@ const map_init = ubicacion => {
                     window.sessionStorage.setItem(''.concat(camara_id).concat("-").concat(colocada), JSON.stringify(info))
                     document.getElementById("dmuerta").innerHTML = Math.floor(dmuerta)
                     document.getElementById("dmax").innerHTML = Math.floor(dmax)
-                    document.getElementById("rotacion_camara").innerHTML = rot
+                    document.getElementById("rotacion_camara").innerHTML = parseInt(rot)
                 }
                 editar(datos,''.concat(camara_id).concat("-").concat(colocada))
 
@@ -855,21 +861,38 @@ const map_init = ubicacion => {
     modes.simple_select.onDrag = function (state, e) {
         return
     };
+
     map.on('draw.create', camarasArea);
     map.on('draw.delete', borraArea);
-    //map.on('draw.update', camarasArea);
-
+    
     function borraArea(e){
+        console.log(draw)
+        console.log(e)
         vertices = e.target._markers
-        for(i=0; i<vertices.length;i++){
-            borraCirculos(map,vertices[i]._element.id)
+        console.log(vertices)
+        j=0
+        for(i=0; vertices[j] && i<e.features[0].geometry.coordinates[0].length;i++){
+            console.log(i)
+            console.log(j)
+            while(vertices[j] && !(e.features[0].geometry.coordinates[0][i][0] == vertices[j]._lngLat.lng &&
+                e.features[0].geometry.coordinates[0][i][1] == vertices[j]._lngLat.lat)){
+                    j++
+                }
+            if(!vertices[j]){
+                continue
+            }
+            console.log(vertices)
+            borraCirculos(map,vertices[j]._element.id)
+            datos=solicita_info(vertices[j]._element.id.split('-')[0])
             prec = parseFloat(document.getElementById("precio_mapa").innerHTML)
-            document.getElementById("precio_mapa").innerHTML = prec - precio
+            document.getElementById("precio_mapa").innerHTML = prec-datos.precio
             document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
-            document.getElementById(vertices[i]._element.id).remove()
+            document.getElementById(vertices[j]._element.id).remove()
             document.getElementById("editar").style.display = "none"
-            marker=marker.filter((item) => item.position_id !== vertices[i]._element.id)
+            marker=marker.filter((item) => item.position_id !== vertices[j]._element.id)
         }
+        e.target._markers=[]
+
     }
 
     function camarasArea(e) {
@@ -897,16 +920,37 @@ const map_init = ubicacion => {
                 for(i=0;i<puntos.length-1;i++){
                     poligono = true
                     longlat = {"lng": puntos[i][0], "lat": puntos[i][1]}
-                    crea_camara(map, longlat, false, null)
+                    vector1 = puntos[i][0]-centro1
+                    vector2 = puntos[i][1]-centro2
+                    mas180=false
+                    if(vector1>0){
+                        mas180 = true
+                    }
+                    pte = vector2/vector1
+                    ang = Math.atan(pte)
+                    trae_rot = ang*180/Math.PI
+                    if(mas180){
+                        trae_rot+=180
+                        mas180=false
+                    }
+                    console.log(trae_rot)
+                    crea_camara(map, longlat, false, null, trae_rot)
                 }
 
+
             }
+            camara=false
+            estilo = false
+            document.getElementById("estilo_mapa").onclick = function(){void(0)}
+            document.getElementById("estilo_mapa").style.color = "#E5E6FF"
         } else {
             document.getElementById("editar").style.display = "none"
             document.getElementById("error").style.display = "block"
             document.getElementById("error_message").innerHTML = "Solo puedes dibujar un área por mapa."
             draw.trash()
         }
+        document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
+        
         
     }
 }
@@ -941,8 +985,8 @@ function editar(datos, id) {
     let _precio = document.getElementById("precio_camara")
     let angl = document.getElementById("angulo")
     document.getElementById("camara_id_eliminar").innerHTML=id
-    document.getElementById("rotacion").value = datos.rotacion
-    document.getElementById("rotacion_camara").innerHTML = datos.rotacion
+    document.getElementById("rotacion").value = parseInt(datos.rotacion)
+    document.getElementById("rotacion_camara").innerHTML = parseInt(datos.rotacion)
     document.getElementById("altura").value = datos.altura
     document.getElementById("altura_camara").innerHTML = datos.altura
     document.getElementById("inclinacion").value = datos.inclinacion
@@ -959,8 +1003,8 @@ function editar(datos, id) {
         document.getElementById("inclinacion_camara").innerHTML = j.inclinacion
         document.getElementById("altura").value = j.altura
         document.getElementById("altura_camara").innerHTML = j.altura
-        document.getElementById("rotacion").value = j.rotacion
-        document.getElementById("rotacion_camara").innerHTML = j.rotacion
+        document.getElementById("rotacion").value = parseInt(j.rotacion)
+        document.getElementById("rotacion_camara").innerHTML = parseInt(j.rotacion)
         document.getElementById("dmuerta").innerHTML = j.dmuerta
         document.getElementById("dmax").innerHTML = j.dmax
     }
