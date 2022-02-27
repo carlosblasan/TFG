@@ -126,3 +126,4 @@ LOGIN_URL = '/login'
 STATIC_URL = '/static/'
 
 FILES_URL = 'files'
+STATIC_ROOT = 'staticfiles'

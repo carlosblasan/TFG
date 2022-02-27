@@ -32,6 +32,8 @@ let sensor = null;
 let precio = null;
 let nombre_camara = null;
 let distancia_focal = null;
+let poligono = false
+let colocada_prev = 0
 
 /** Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
  * y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
@@ -174,7 +176,10 @@ function getCookie(name) {
 
 function enviaVariable(nombre_mapa) {
     let respuesta = window.prompt("Introduce un nombre para el mapa. Si ya existe, se reemplazará.",nombre_mapa)
-    console.log(document)
+    if(!respuesta){
+        return
+    }
+
     let p = parseFloat(document.getElementById("precio_mapa").innerHTML)
     fetch('/nuevo', {
         method:'POST',
@@ -314,7 +319,9 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     console.log("Y una")
     if(!carga_mapa){
         rot=0
-        colocada++                               
+        colocada = colocada_prev
+        colocada++  
+        colocada_prev = colocada                             
     }
     el = document.createElement('div')
     el.className = 'marker';
@@ -372,6 +379,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
     m.getElement().addEventListener('click', (e) => {
         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(e.target.id))).posicion
         camara_id = parseInt(e.target.id.split('-')[0])
+        colocada_prev = colocada
         colocada = parseInt(e.target.id.split('-')[1])
         datos=solicita_info(camara_id)
         if(datos){
@@ -391,6 +399,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         
     })
     m.on('dragstart', function(e){
+        colocada_prev = colocada
         camara_id = e.target._element.id.split('-')[0]
         colocada = e.target._element.id.split('-')[1]
         if(!carga_mapa){
@@ -416,6 +425,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
         borraCirculos(map, e.target._element.id)
     })
     m.on('dragend', function(e) {
+        colocada_prev = colocada
         camara_id = e.target._element.id.toString().split('-')[0]
         colocada = e.target._element.id.toString().split('-')[1]
         if(!carga_mapa){
@@ -448,7 +458,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual) {
 
     }) 
 
-    if(carga_mapa){
+    if(carga_mapa || poligono){
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
@@ -564,6 +574,8 @@ function cargar_mapa(map, info_mapa) {
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
 }
+
+
 
 // Inicializa el mapa que se va a mostrar en la web
 const map_init = ubicacion => {
@@ -828,6 +840,46 @@ const map_init = ubicacion => {
         })
     );
     map.addControl(draw);
+    draw.changeMode('simple_select')
+    map.on('draw.create', camarasArea);
+    map.on('draw.delete', camarasArea);
+    //map.on('draw.update', camarasArea);
+    function camarasArea(e) {
+        console.log(e)
+        console.log(e.target._listeners.move)
+        
+        if(e.action == "change_coordinates" ||e.action == "move"){
+            
+            // TODO: BORRAR LAS CAMARAS Y LOS CIRCULOS Y DIBUJAR LOS NUEVOS
+        }
+        console.log(draw)
+        if(!camara_id){
+            document.getElementById("error").style.display = "block"
+            document.getElementById("error_message").innerHTML = "Debes seleccionar primero una cámara."
+            draw.trash()
+            return
+        }
+        data = draw.getAll()
+        if (data.features.length>0){
+            poligono= true
+            puntos = data.features[0].geometry.coordinates[0]
+            centro1=0
+            centro2=0
+            if(puntos.length>1){
+                for(i=0;i<puntos.length;i++){
+                    centro1+=puntos[i][0]
+                    centro2+=puntos[i][1]
+                }
+                centro1 /= puntos.length
+                centro2 /= puntos.length
+            
+                for(i=1;i<puntos.length-1;i++){
+                    longlat = {"lng": puntos[i][0], "lat": puntos[i][1]}
+                    crea_camara(map, longlat, false, null)
+                }
+            }
+        }
+    }
 }
 
 
