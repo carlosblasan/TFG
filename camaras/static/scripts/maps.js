@@ -1,3 +1,8 @@
+//import { default as html2canvas } from "../../node_modules/html2canvas/dist/html2canvas.min.js"
+
+//const { default: html2canvas } = require("html2canvas")
+
+//canvas2html = require("canvas2html")
 // Token de acceso a la API de mapbox
 mapboxgl.accessToken = 'pk.eyJ1IjoiY2FybG9zYnMiLCJhIjoiY2t3cW56bTA1MG9kNDJ0cW9mYTAyYTluaiJ9.Cf2bC7z5GSVWVZ-Ka7Ji4A'
 // Variable booleana que vale true si se esta colocando la camara
@@ -188,6 +193,9 @@ function enviaVariable(nombre_mapa) {
     }
 
     let p = parseFloat(document.getElementById("precio_mapa").innerHTML)
+    html2canvas(document.getElementById("map")).then(canvas=>{console.log(canvas.toDataURL("image/png").replace("image/png", "image/octet-stream")); console.log(canvas);})
+    //console.log(imagen)
+    imagen = null
     fetch('/nuevo', {
         method:'POST',
         redirect: 'follow',
@@ -465,6 +473,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
         editar(datos, e.target._element.id)
         dibujaCirculos(map, e.target._element.id, longlat, angulo, dmax, dmuerta,rotacion)
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        imagen = html2canvas(document.getElementById("map"))
 
     }) 
 
@@ -473,6 +482,7 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        imagen = html2canvas(document.getElementById("map"))
 
     }
     document.getElementById("eliminar_camara_mapa").addEventListener("click", ()=>{
@@ -576,6 +586,7 @@ function cargar_mapa(map, info_mapa) {
         crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i], null)
     }
     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+    imagen = html2canvas(document.getElementById("map"))
 }
 
 
@@ -657,7 +668,7 @@ const map_init = ubicacion => {
                 rot = datos.rotacion
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
                 imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-
+                imagen = html2canvas(document.getElementById("map"))
             } else {
                 document.getElementById("error").style.display = "block"
                 document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
@@ -673,6 +684,7 @@ const map_init = ubicacion => {
     map.on('load', ()=>{
         
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        imagen = html2canvas(document.getElementById("map"))
         // Cargar el mapa
         let map_id = document.getElementById("edit_mapa_id").innerHTML
         if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
@@ -740,7 +752,7 @@ const map_init = ubicacion => {
                     longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
                     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-
+                    imagen = html2canvas(document.getElementById("map"))
                     info = {
                         "angulo": angulo,
                         "altura": parseInt(e.srcElement.value),
@@ -775,7 +787,7 @@ const map_init = ubicacion => {
 
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
                     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-
+                    imagen = html2canvas(document.getElementById("map"))
                     info = {
                         "angulo": angulo,
                         "altura": altura,
@@ -817,7 +829,7 @@ const map_init = ubicacion => {
 
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, parseInt(e.srcElement.value))
                     imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-
+                    imagen = html2canvas(document.getElementById("map"))
                     info = {
                         "angulo": angulo,
                         "altura": altura,
@@ -839,7 +851,7 @@ const map_init = ubicacion => {
 
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
                 imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-
+                imagen = html2canvas(document.getElementById("map"))
             }
             
         }

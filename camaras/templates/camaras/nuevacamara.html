@@ -1,10 +1,11 @@
 {% extends 'camaras/layout.html' %}
 
 {% block title %}
-Nueva cámara
+Añadir dispositivo
 {% endblock %}
 {% block new-camera-active %} class="nav-link active" {% endblock %}
 {% block body %}
+<h3 class="display-3">Nuevo dispositivo</h3>
 <form method="post" action="{% url 'camaras:nuevacamara' %}">
     {% csrf_token %}
     <div class="mb-3">

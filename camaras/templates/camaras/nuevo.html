@@ -42,7 +42,13 @@ Crear nuevo mapa
                   &nbsp;
                   &nbsp;
                   &nbsp;
-
+                  <li class="nav-item">
+                    {% if mapa %}
+                      <div onload="cargamapa({{mapa}})">Nombre del mapa: <strong>{{ nombre }}</strong></div>
+                    {% else %}
+                      <div>Mapa sin guardar</div>
+                    {% endif %}
+                  </li>
                   <li class="nav-item">
                      
                     <span id="camara_seleccionada">Ninguna camara seleccionada</span>
@@ -99,9 +105,7 @@ Crear nuevo mapa
             </div>
         </div>
         <div class="col-xl-8">
-          {% if mapa %}
-            <div hidden onload="cargamapa({{mapa}})"></div>
-          {% endif %}
+          
             <div id='map'></div>
             <div id='info'></div>
         </div>
