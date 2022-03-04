@@ -518,6 +518,8 @@ def eliminar(request):
         data = json.loads(request.body)
         try:
             mapa = Mapa.objects.get(id=data['eliminar'])
+            f = os.path.join(STATIC_DIR, FILES_URL,"mapa_"+mapa.nombre+"_"+str(mapa.usuario)+".json")
+            os.remove(f)
             mapa.delete()
         except Mapa.DoesNotExist:
             pass
