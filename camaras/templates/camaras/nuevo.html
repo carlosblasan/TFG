@@ -27,9 +27,6 @@ Crear nuevo mapa
                         {% endfor %}
                     </ul>
                   </li>
-                  <li class="nav-item">
-                        <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>                    
-                  </li>
                   <li class="nav-link active">Precio del mapa: 
                     <strong>
                       <span id="precio_mapa">0{% if precio %}{{ precio }}{% endif %}</span> €
@@ -107,6 +104,11 @@ Crear nuevo mapa
         <div class="col-xl-8">
           
             <div id='map'></div>
+            <br/>
+            &nbsp;
+                  &nbsp;
+            <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>              
+
             <div id='info'></div>
         </div>
     </div>

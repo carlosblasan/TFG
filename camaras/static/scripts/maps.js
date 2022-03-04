@@ -697,9 +697,9 @@ const map_init = ubicacion => {
             window.localStorage.removeItem("mapa_JSON")
         }
     })
-    map.on('mousemove', (e) => {
+    map.on('load', (e) => {
         
-        document.getElementById('map').onclick = function() {
+        //document.getElementById('map').onclick = function() {
             boton = document.getElementsByClassName("mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_polygon")[0]
             if(boton.classList.contains("active")){
                 no_entrar = true
@@ -711,13 +711,13 @@ const map_init = ubicacion => {
                 return
             }
             if(camara){
-        document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
+                document.getElementById("camara_seleccionada").innerHTML = "Ninguna camara seleccionada"
 
                 camara=false
                 estilo = false
                 document.getElementById("estilo_mapa").onclick = function(){void(0)}
                 document.getElementById("estilo_mapa").style.color = "#E5E6FF"
-                longlat = e.lngLat.wrap()
+                longlat = map.getCenter()
                 crea_camara(map,longlat,false, null, null)
              
                 datos=solicita_info(camara_id)
@@ -854,7 +854,7 @@ const map_init = ubicacion => {
                 imagen = html2canvas(document.getElementById("map"))
             }
             
-        }
+        //}
     });
     map.addControl(
         new mapboxgl.GeolocateControl({
