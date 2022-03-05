@@ -6,6 +6,9 @@ Mis dispositivos
 {% block camaras-active %} class="nav-link active" {% endblock %}
 {% block body %}
 <h3 class="display-3">Mis dispositivos</h3>
+{% if not camaras %}
+    <h6 class="display-6">No hay dispositivos en el sistema</h6>
+{% endif %}
 {% for i, cam in camaras.items %}
 <h6 class="display-6">Cámaras de distancia focal {{i}} mm:</h6>
 <ul class="list-group"> 
