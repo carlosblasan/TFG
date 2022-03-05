@@ -28,7 +28,7 @@ SECRET_KEY = 'p%cx4#fs(xv5p$eho-yh@-d2#xx6_+*=p^!k%okc59bdn8w&ye'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'lit-cliffs-40317.herokuapp.com', u'localhost', u'127.0.0.1']
+ALLOWED_HOSTS = [u'perimeterguardian.herokuapp.com', u'localhost', u'127.0.0.1']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Application definition
