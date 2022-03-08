@@ -1,3 +1,9 @@
+"""
+ TFG
+ views.py
+ Autor: Carlos Blanco Santero
+ Tutor: Eduardo Cermeño
+"""
 import json
 import os
 from django.contrib.auth.decorators import login_required
