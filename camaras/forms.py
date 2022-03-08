@@ -1,3 +1,9 @@
+"""
+ TFG
+ forms.py
+ Autor: Carlos Blanco Santero
+ Tutor: Eduardo Cermeño
+"""
 from django import forms
 from django.forms.widgets import PasswordInput
 from .models import Camara, Usuario
