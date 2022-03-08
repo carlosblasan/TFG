@@ -1,3 +1,7 @@
+// TFG
+// Autor: Carlos Blanco Santero
+// Tutor: Eduardo Cermeño
+
 //import { default as html2canvas } from "../../node_modules/html2canvas/dist/html2canvas.min.js"
 
 //const { default: html2canvas } = require("html2canvas")
