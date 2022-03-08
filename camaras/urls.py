@@ -1,3 +1,9 @@
+"""
+TFG
+ urls.py
+ Autor: Carlos Blanco Santero
+ Tutor: Eduardo Cermeño
+"""
 from django.urls import path
 from . import views
 from django.contrib.staticfiles.storage import staticfiles_storage
