@@ -207,7 +207,7 @@ function enviaVariable(nombre_mapa) {
         body: JSON.stringify({"nombre":respuesta, "content": window.sessionStorage, "imagen":imagen, "precio": p}),
     }).then(response=> {
         if (response.redirected) {
-            //window.location.href = response.url;
+            window.location.href = response.url;
        }
     });
 
