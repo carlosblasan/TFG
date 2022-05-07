@@ -684,6 +684,9 @@ const map_init = ubicacion => {
         let lat = document.getElementById("lat_centro").value
         if(long && lat) {
             if(Math.abs(long) <= 180 && Math.abs(lat) <= 90){
+                document.getElementById("error").style.display = "none"
+                document.getElementById("long_centro").value = null
+                document.getElementById("lat_centro").value = null
                 map.setCenter([long, lat])
                 map.setZoom(18)
             } else {

@@ -86,9 +86,7 @@ Crear nuevo mapa
               </div>
               <input type="submit" id="boton_coords" class="btn btn-primary" name="boton_coords" value="Colocar cámara"/>
             
-              <div id="error" class="alert alert-danger" role="alert">
-                <strong>Error: </strong><span id="error_message"></span>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -114,8 +112,13 @@ Crear nuevo mapa
               Latitud
             </label>
             <input name="lat_centro" type="text" class="form-control" id="lat_centro">
+            <br/>
+            <input type="submit" id="boton_coords_centro" class="btn btn-primary" name="boton_coords_centro" value="Centrar mapa"/>
+            <div id="error" class="alert alert-danger" role="alert">
+              <strong>Error: </strong><span id="error_message"></span>
+            </div>
           </div>
-          <input type="submit" id="boton_coords_centro" class="btn btn-primary" name="boton_coords_centro" value="Centrar mapa"/>
+          
         </div>
       </div>
     </div>
