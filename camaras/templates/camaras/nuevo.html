@@ -7,9 +7,9 @@ Crear nuevo mapa
 {% block nuevo-active %} class="nav-link active" {% endblock %}
 {% block body %}
     <p id="edit_mapa_id" hidden>{{mapa}}</p>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="div_listado_camaras" role="navigation">
         <div class="container-fluid">
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">                  
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -24,19 +24,13 @@ Crear nuevo mapa
                         {% endfor %}
                     </ul>
                   </li>
-                  <li class="nav-link active">Precio del mapa: 
-                    <strong>
-                      <span id="precio_mapa">0{% if precio %}{{ precio }}{% endif %}</span> €
-                    </strong>
+                  <li class="nav-link active" hidden>Precio del mapa: 
+                    <strong hidden>
+                      <span id="precio_mapa" hidden>0{% if precio %}{{ precio }}{% endif %}</span> €
+                    </strong> 
                   </li>
-                  &nbsp;
-                  &nbsp;
-                  &nbsp;
-                  &nbsp;
-                  &nbsp;
-                  &nbsp;
-                  &nbsp;
-                  <li class="nav-item">
+
+                  <li id="lista_nombre_mapa" class="nav-item">
                     {% if mapa %}
                       <div onload="cargamapa({{mapa}})">Nombre del mapa: <strong>{{ nombre }}</strong></div>
                     {% else %}
@@ -53,35 +47,33 @@ Crear nuevo mapa
         </nav>
 
         
-    <div class="row">
+      <div class="row">
         <div id="lateral" class="col-xl-2">
           <h3>Lista de cámaras añadidas:</h3>
-          <ul id="lista_anadidas">
+          <ul id="lista_anadidas" class="list-group">
             <h5 id="nocamaras">Ninguna cámara añadida</h5>
           </ul>
-            <div id="editar" class="container-fluid">
-                Editar cámara <span id="nombre_camara"></span>. 
-                <span id="camara_id_eliminar" hidden></span>
-                Tiene un precio de <span id="precio_camara"></span> €
-                <br/>
-                <ul class="list-group">
-                    <li class="list-group-item">Distancia focal: <span id="dist_focal"></span>mm</li>
-                    <li class="list-group-item">Ángulo de apertura: <span id="angulo"></span>º</li>
-                    <li class="list-group-item"><label for="altura" class="form-label">Altura de la cámara: </label> <span id="altura_camara">4</span>m
-                        <input type="range" class="form-range" min="0" max="15" value="4" step="1" id="altura"></li>
-                    <li class="list-group-item"><label for="inclinacion" class="form-label">Inclinación de la cámara: </label> <span id="inclinacion_camara">70</span>º
-                        <input type="range" class="form-range" min="0" max="89" value="70" step="1" id="inclinacion"></li>
-                    <li class="list-group-item"><label for="rotacion" class="form-label">Rotación de la cámara: </label> <span id="rotacion_camara">0</span>º
-                      <input type="range" class="form-range" min="0" max="360" value="0" step="1" id="rotacion"></li>
-                      <li class="list-group-item">Distancia muerta: <span id="dmuerta"></span>m</li>
-                      <li class="list-group-item">Distancia máxima: <span id="dmax"></span>m</li>
-                      <button type="button" id="eliminar_camara_mapa" class="btn btn-danger">Eliminar cámara</button>
-                </ul>
-
-            </div>
+          <div id="editar" class="container-fluid">
+            Editar cámara <span id="nombre_camara"></span>. 
+            <span id="camara_id_eliminar" hidden></span>
+            Tiene un precio de <span id="precio_camara"></span> €
+            <br/>
+            <ul class="list-group">
+                <li class="list-group-item">Distancia focal: <span id="dist_focal"></span>mm</li>
+                <li class="list-group-item">Ángulo de apertura: <span id="angulo"></span>º</li>
+                <li class="list-group-item"><label for="altura" class="form-label">Altura de la cámara: </label> <span id="altura_camara">4</span>m
+                    <input type="range" class="form-range" min="0" max="15" value="4" step="1" id="altura"></li>
+                <li class="list-group-item"><label for="inclinacion" class="form-label">Inclinación de la cámara: </label> <span id="inclinacion_camara">70</span>º
+                    <input type="range" class="form-range" min="0" max="89" value="70" step="1" id="inclinacion"></li>
+                <li class="list-group-item"><label for="rotacion" class="form-label">Rotación de la cámara: </label> <span id="rotacion_camara">0</span>º
+                  <input type="range" class="form-range" min="0" max="360" value="0" step="1" id="rotacion"></li>
+                  <li class="list-group-item">Distancia muerta: <span id="dmuerta"></span>m</li>
+                  <li class="list-group-item">Distancia máxima: <span id="dmax"></span>m</li>
+                  <button type="button" id="eliminar_camara_mapa" class="btn btn-danger">Eliminar cámara</button>
+            </ul>
             <div>
-              Coloca la cámara indicando sus coordenadas:
-  
+              Mueve la cámara indicando sus nuevas coordenadas:
+        
               <div class="mb-3">
                 <label for="long" class="form-label">
                     Longitud
@@ -93,24 +85,38 @@ Crear nuevo mapa
                 <input name="lat" type="text" class="form-control" id="lat">
               </div>
               <input type="submit" id="boton_coords" class="btn btn-primary" name="boton_coords" value="Colocar cámara"/>
-              
+            
               <div id="error" class="alert alert-danger" role="alert">
                 <strong>Error: </strong><span id="error_message"></span>
               </div>
             </div>
+          </div>
         </div>
-        <div class="col-xl-8">
-          
-            <div id='map'></div>
-            <a id="estilo_mapa" type="button" class="nav-link active" aria-current="page">Vista de satélite</a>
-
-            <br/>
-            &nbsp;
-                  &nbsp;
-            <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>              
-
-            <div id='info'></div>
+        <div id="container" class="col-xl-8">
+          <div id='map'></div>
+          <a id="estilo_mapa" type="button" class="nav-link active" aria-current="page">Vista de satélite</a>
+          <button id="guardar" onclick='enviaVariable(`{{nombre}}`)' class="btn btn-primary" type="button">Guardar mapa</button>              
+          <div id='info'></div>
+          <br/>
+          &nbsp;
+          &nbsp;
         </div>
+        
+        <div id="centrar" class="col-xl-2">
+          Centrar el mapa:
+
+          <div class="mb-3">
+            <label for="long_centro" class="form-label">
+              Longitud
+            </label>
+            <input autofocus name="long_centro" type="text" class="form-control" id="long_centro">
+            <label for="lat_centro" class="form-label">
+              Latitud
+            </label>
+            <input name="lat_centro" type="text" class="form-control" id="lat_centro">
+          </div>
+          <input type="submit" id="boton_coords_centro" class="btn btn-primary" name="boton_coords_centro" value="Centrar mapa"/>
+        </div>
+      </div>
     </div>
-
 {% endblock %}

@@ -14,6 +14,7 @@
 }
 #editar{
   display: none;
+  width: 100%;
 }
 
 #estilo_mapa {
@@ -75,6 +76,53 @@ label {
 }
 
 #logo {
-  height: 150px;
-  margin-left: 200px;  
+
+  width: 40%;
+  text-align: center;
+  /* height: 50%; */
+  margin-left: 30%;  
+}
+
+#passwordBar {
+  display: inline-block;
+  width: 2%;
+  height: 15px;
+  background-color: red;
+  left:0px;
+  position:absolute;
+  border-radius: 10px;
+  font-size:15px;
+  position:relative;
+  margin-top:10px;
+}
+
+#passwordBarParent {
+  position: relative;
+  text-align: left;
+  font-size:20px;
+}
+
+#lateral {
+  width: 20%;
+}
+
+#container {
+  width: 60%;
+}
+
+#centrar{
+  width: 20%;
+}
+
+.camaras_lista_anadidas:hover{
+  cursor: pointer;
+}
+
+#guardar {
+  width: 300px;
+}
+
+#lista_nombre_mapa {
+  position: relative;
+  padding-left: 30vw;
 }

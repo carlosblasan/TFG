@@ -5,35 +5,151 @@ Registrarse
 {% endblock %}
 {% block register-active %} class="nav-link active" {% endblock %}
 {% block body %}
+<script>
+    function compruebacontrasenas(){
+            ps = document.getElementById("password").value
+            repeatps = document.getElementById("repeat_password").value
+
+            if(ps!=repeatps){
+                a=document.getElementById("error_passwords")
+                a.className = "alert alert-danger"
+                a.setAttribute("role","alert")
+                a.innerHTML = "Las contraseñas no coinciden"
+            } else{
+                a=document.getElementById("error_passwords")
+                a.innerHTML = ""
+                a.removeAttribute("role")
+                a.removeAttribute("class")
+            }
+        }
+
+
+    function porcentaje(clave) {
+        var porcentaje = 2;
+
+        if(clave.length >= 0){
+            document.getElementById("longitud_clave").style.color = "red"
+            porcentaje += Math.min(30, clave.length/12 * 30);
+            if(/[A-Z]/.test(clave)) {
+                document.getElementById("mayusculas").style.color = 'green';
+            } else {
+                document.getElementById("mayusculas").style.color = 'red';
+            }
+
+            if(/[0-9]/.test(clave)) {
+                document.getElementById("numeros").style.color = 'green';
+            } else {
+                document.getElementById("numeros").style.color = 'red';
+            }
+
+            if(!(/^[a-zA-Z0-9äöüÄÖÜ]*$/.test(clave))){
+                document.getElementById("especiales").style.color = 'green';
+            } else {
+                document.getElementById("especiales").style.color = 'red';
+            }
+        }
+
+        if(clave.length >= 8){
+            document.getElementById("longitud_clave").style.color = "green"
+            if(/[A-Z]/.test(clave)) {
+                porcentaje += 20;
+                document.getElementById("mayusculas").style.color = 'green';
+            } else {
+                document.getElementById("mayusculas").style.color = 'red';
+            }
+
+            if(/[0-9]/.test(clave)) {
+                porcentaje += 20;
+                document.getElementById("numeros").style.color = 'green';
+            } else {
+                document.getElementById("numeros").style.color = 'red';
+            }
+
+            if(!(/^[a-zA-Z0-9äöüÄÖÜ]*$/.test(clave))){
+                porcentaje += 28;
+                document.getElementById("especiales").style.color = 'green';
+            } else {
+                document.getElementById("especiales").style.color = 'red';
+            }
+        }
+
+        return porcentaje;
+    }
+
+$(document).ready(function() {
+    $("#password").keyup(function(){
+        var p = porcentaje($(this).val());
+        var divText = $("#passwordBarParent").html();
+        divText = divText.replace("Mala",'');
+        divText = divText.replace("Regular",'');
+        divText = divText.replace("Buena",'');
+
+        if(p <= 30){
+            $("#passwordBarParent").html(divText + "Mala");
+            $("#passwordBar").css("background-color", "red");
+        } else if (p < 60){
+            $("#passwordBarParent").html(divText + "Regular");
+            $("#passwordBar").css("background-color", "yellow");
+        } else {
+            $("#passwordBarParent").html(divText + "Buena");
+            $("#passwordBar").css("background-color", "green");
+        }
+
+        $("#passwordBar").css("width", p/1.8 + "%");
+    })
+
+})
+
+
+</script>
     <form method="post" action="{% url 'camaras:registro' %}">
         {% csrf_token %}
         <div class="mb-3">
             <label for="first_name" class="form-label">
                 Nombre
             </label>
-            <input autofocus name="first_name" type="text" class="form-control" id="first_name">
+            <input autofocus name="first_name" type="text" class="form-control" id="first_name" required>
             <label for="last_name" class="form-label">
                 Apellidos
             </label>
-            <input name="last_name" type="text" class="form-control" id="last_name">
+            <input name="last_name" type="text" class="form-control" id="last_name" required>
             <label for="email" class="form-label">
                 Email
             </label>
-            <input name="email" type="email" class="form-control" id="email">
+            <input name="email" type="email" class="form-control" id="email" required>
             <label for="username" class="form-label">
                 Usuario
             </label>
-            <input name="username" type="text" class="form-control" id="username">
+            <input name="username" type="text" class="form-control" id="username" required>
             <label for="password" class="form-label">
                 Contraseña
             </label>
-            <input name="password" type="password" class="form-control" id="password">
+            <input name="password" type="password" class="form-control" id="password" required>
             <label for="repeat_password" class="form-label">
                 Repite la contraseña
             </label>
-            <input name="repeat_password" type="password" class="form-control" id="repeat_password">
+            <input name="repeat_password" type="password" oninput="compruebacontrasenas()" class="form-control" id="repeat_password" required>
+            <div>
+                <p id="error_passwords">  
+                </p>
+            </div>
+            <ul class="list-group">
+                Crea tu clave más segura:
+                <li class="list-group-item" id="longitud_clave" style="color: red;">Al menos 8 caracteres</li>
+                <li class="list-group-item" id="mayusculas" style="color: red;">Mayúsculas</li>
+                <li class="list-group-item" id="numeros" style="color:red;">Números</li>
+                <li class="list-group-item" id="especiales" style="color:red;">Caracteres especiales</li>
+            </ul>
+            <label for="passwordBarParent" class="form-label"><b>Fortaleza de la clave:</b></label><br/>
+            <div id="passwordBarParent">
+                <div id="passwordBar">
+                </div>
 
+                Mala
+            </div>
         </div>
+        
+        <br/><br/>
         <input type="submit" class="btn btn-primary" name="registro" value="Registrarse">
     </form>
 {% endblock %}

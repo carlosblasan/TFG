@@ -188,18 +188,23 @@ function getCookie(name) {
 
 
 function enviaVariable(nombre_mapa) {
+    // window.localStorage.removeItem("token")
+    html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
     let respuesta = window.prompt("Introduce un nombre para el mapa. Si ya existe, se reemplazará.",nombre_mapa)
     if(!respuesta){
         return
     }
 
     let p = parseFloat(document.getElementById("precio_mapa").innerHTML)
-    html2canvas(document.getElementById("map")).then(canvas=>{
-        document.getElementById("descargar_".concat(nombre_mapa)).href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); 
-        //document.getElementById()
-    })
-    //console.log(imagen)
-    imagen = null
+    // html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas=>{
+    //     document.getElementById("descargar_".concat(nombre_mapa)).href = JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}).replace("image/png", "image/octet-stream"); 
+    //     //document.getElementById()
+    // })
+    imagen = JSON.parse(window.localStorage.getItem("token")).imagen
+
+    // imagen = null
     fetch('/nuevo', {
         method:'POST',
         redirect: 'follow',
@@ -268,7 +273,7 @@ function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
         "id": "circle".concat(id),
         "type": "fill",
         "source": "circle".concat(id),
-        "layout": {},
+        "layout": {'visibility': 'visible'},
         "paint": {
             "fill-color": "#FFAB03",
             "fill-opacity": 0.3
@@ -279,9 +284,9 @@ function dibujaCirculos(map, id, longlat, angulo, dmax, dmuerta, rot) {
         "id": "dead_circle".concat(id),
         "type": "fill",
         "source": "dead_circle".concat(id),
-        "layout": {},
+        "layout": {'visibility': 'visible'},
         "paint": {
-            "fill-color": "#F5F9FF",
+            "fill-color": "#9C1C00",
             "fill-opacity": 0.3
         }
     });
@@ -332,6 +337,7 @@ function cargaInfo() {
         "precio": precio
     }
 }
+
 
 function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {  
     estilo = false
@@ -398,17 +404,22 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
     m.setLngLat([longlat.lng,longlat.lat]).addTo(map);
     marker.push({"position_id": position_id, "marker":m})
     var ul = document.getElementById("lista_anadidas")
-    if(ul.getElementsByTagName('h3').length>0){
+    if(ul.getElementsByTagName('h5').length>0){
         ul.removeChild(document.getElementById("nocamaras"))
     }
     var li = document.createElement("li")
+    li.setAttribute("class", "list-group-item camaras_lista_anadidas")
+    li.setAttribute("cursor", "pointer")
     li.id = "lista_".concat(position_id)
     li.innerHTML = info.nombre_camara
     li.onclick = function(){
+        pos_id = li.id
+        camara_id = pos_id.split("_")[1].split("-")[0]
+        colocada = pos_id.split("_")[1].split("-")[1]
         datos=solicita_info(camara_id)
         get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
-        
-        editar(datos, position_id)
+        precio = datos.precio
+        editar(datos, pos_id)
     }
     ul.appendChild(li)
 
@@ -432,6 +443,10 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
         get_data(datos.inclinacion, datos.distancia_focal, datos.altura, datos.sensor.split("x")[0])
         
         editar(datos, e.target.id)
+        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
     })
     m.on('dragstart', function(e){
         colocada_prev = colocada
@@ -490,7 +505,9 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
         editar(datos, e.target._element.id)
         dibujaCirculos(map, e.target._element.id, longlat, angulo, dmax, dmuerta,rotacion)
         imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-        imagen = html2canvas(document.getElementById("map"))
+        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
 
     }) 
 
@@ -498,8 +515,10 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
         poligono = false
         m.setRotation(-rot)
         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
-        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-        imagen = html2canvas(document.getElementById("map"))
+        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
 
     }
     document.getElementById("eliminar_camara_mapa").addEventListener("click", ()=>{
@@ -516,7 +535,18 @@ function crea_camara(map,longlat, carga_mapa, camara_actual, trae_rotacion) {
             marker=marker.filter((item) => item.position_id !== position_id)
             var ul = document.getElementById("lista_anadidas")
             ul.removeChild(document.getElementById("lista_".concat(position_id)))
+            if(ul.getElementsByTagName('li').length == 0){
+                h5 = document.createElement("h5")
+                h5.id = "nocamaras"
+                h5.innerHTML = "Ninguna cámara añadida"
+                ul.append(h5)
+            }
         }
+        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+                            // This code will run once the promise has completed
+                            window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));
+                            })
     
     })
 }
@@ -603,8 +633,12 @@ function cargar_mapa(map, info_mapa) {
         distancia_focal = camara_actual.distancia_focal 
         crea_camara(map, lista_camaras[i].posicion,true, lista_camaras[i], null)
     }
-    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-    imagen = html2canvas(document.getElementById("map"))
+    // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+    html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+            // This code will run once the promise has completed
+            window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")})) 
+        })
+        
 }
 
 
@@ -618,14 +652,15 @@ const map_init = ubicacion => {
         style: 'mapbox://styles/mapbox/streets-v11', // style URL
         center: [-3.7031068, 40.4166275], // starting position [lng, lat]
         zoom: 16, // starting zoom
-        preserveDrawingBuffer: true
+        preserveDrawingBuffer: true,
+        preferCanvas: true
         
     });
     if(!error){
         map.setCenter([ubicacion.coords.longitude, ubicacion.coords.latitude])
         map.setZoom(18)
     }
-    //Canvas2Image.saveAsPNG(imagen)
+    // Canvas2Image.saveAsPNG(imagen)
 
     if(estilo) {
         document.getElementById("estilo_mapa").onclick = function(){   
@@ -642,7 +677,28 @@ const map_init = ubicacion => {
     }
 
     /**
-     * Si se introducen las coordenada por medio del formulario
+     * Si se introducen las coordenadas para centrar el mapa
+     */
+    document.getElementById("boton_coords_centro").onclick = function(){
+        let long = document.getElementById("long_centro").value
+        let lat = document.getElementById("lat_centro").value
+        if(long && lat) {
+            if(Math.abs(long) <= 180 && Math.abs(lat) <= 90){
+                map.setCenter([long, lat])
+                map.setZoom(18)
+            } else {
+                document.getElementById("error").style.display = "block"
+                document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
+                return
+            }
+        } else {
+            document.getElementById("error").style.display = "block"
+            document.getElementById("error_message").innerHTML = "Debes rellenar los dos campos."
+            return
+        }
+    }
+    /**
+     * Si se introducen las coordenadas de las camaras por medio del formulario
     */
     document.getElementById("boton_coords").onclick = function() {
         let long = document.getElementById("long").value
@@ -685,8 +741,12 @@ const map_init = ubicacion => {
                 editar(datos, ''.concat(camara_id).concat("-").concat(colocada))
                 rot = datos.rotacion
                 dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot)
-                imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-                imagen = html2canvas(document.getElementById("map"))
+                // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+                html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+                            // This code will run once the promise has completed
+                            window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")})) }
+                )
+
             } else {
                 document.getElementById("error").style.display = "block"
                 document.getElementById("error_message").innerHTML = "Debes introducir un valor correcto."
@@ -701,8 +761,8 @@ const map_init = ubicacion => {
     map.addControl(new mapboxgl.NavigationControl());
     map.on('load', ()=>{
         
-        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-        imagen = html2canvas(document.getElementById("map"))
+        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+        
         // Cargar el mapa
         let map_id = document.getElementById("edit_mapa_id").innerHTML
         if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
@@ -714,11 +774,13 @@ const map_init = ubicacion => {
             cargar_mapa(map, JSON.parse(window.localStorage.getItem("mapa_JSON")))
             window.localStorage.removeItem("mapa_JSON")
         }
+        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}) )})
     })
     map.on('load', (e) => {
         for(i=0;i<document.getElementsByClassName('colocacamara').length;i++){
             document.getElementsByClassName('colocacamara')[i].onclick = function() {
-                console.log("GOADSKADSL")
                 boton = document.getElementsByClassName("mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_polygon")[0]
                 if(boton.classList.contains("active")){
                     no_entrar = true
@@ -735,7 +797,6 @@ const map_init = ubicacion => {
                     document.getElementById("estilo_mapa").onclick = function(){void(0)}
                     document.getElementById("estilo_mapa").style.color = "#E5E6FF"
                     longlat = map.getCenter()
-                    console.log(longlat)
                     crea_camara(map,longlat,false, null, null)
                 
                     datos=solicita_info(camara_id)
@@ -769,8 +830,10 @@ const map_init = ubicacion => {
                         borraCirculos(map, ''.concat(camara_id).concat("-").concat(colocada))
                         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
                         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
-                        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-                        imagen = html2canvas(document.getElementById("map"))
+                        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+                        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+                                    // This code will run once the promise has completed
+                                    window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
                         info = {
                             "angulo": angulo,
                             "altura": parseInt(e.srcElement.value),
@@ -804,8 +867,10 @@ const map_init = ubicacion => {
                         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
 
                         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, rotacion)
-                        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-                        imagen = html2canvas(document.getElementById("map"))
+                        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+                        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
                         info = {
                             "angulo": angulo,
                             "altura": altura,
@@ -846,8 +911,10 @@ const map_init = ubicacion => {
                         longlat = JSON.parse(window.sessionStorage.getItem("posicion_".concat(camara_id).concat('-').concat(colocada))).posicion
 
                         dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta, parseInt(e.srcElement.value))
-                        imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-                        imagen = html2canvas(document.getElementById("map"))
+                        // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+                        html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
                         info = {
                             "angulo": angulo,
                             "altura": altura,
@@ -868,8 +935,10 @@ const map_init = ubicacion => {
                     }
 
                     dibujaCirculos(map, ''.concat(camara_id).concat("-").concat(colocada), longlat, angulo, dmax, dmuerta,rot) 
-                    imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
-                    imagen = html2canvas(document.getElementById("map"))
+                    // imagen = map.getCanvas().toDataURL("image/png").replace("image/png", "image/octet-stream")
+                    html2canvas( document.getElementById("map"), attributes={useCORS: true,logging: true, letterRendering: 1, crossOrigin: 'Anonymous' }).then(canvas => {
+        // This code will run once the promise has completed
+        window.localStorage.setItem("token", JSON.stringify({"imagen":canvas.toDataURL("image/octet-stream")}));})
                 }
             }
         }
@@ -932,21 +1001,13 @@ const map_init = ubicacion => {
         data = draw.getAll()
         if(data.features.length==1){
             puntos = data.features[0].geometry.coordinates[0]
-            centro1=0
-            centro2=0
             if(puntos.length>1){
-                for(i=0;i<puntos.length;i++){
-                    centro1+=puntos[i][0]
-                    centro2+=puntos[i][1]
-                }
-                centro1 /= puntos.length
-                centro2 /= puntos.length
-            
+                
                 for(i=0;i<puntos.length-1;i++){
                     poligono = true
                     longlat = {"lng": puntos[i][0], "lat": puntos[i][1]}
-                    vector1 = puntos[i][0]-centro1
-                    vector2 = puntos[i][1]-centro2
+                    vector1 = puntos[i][0]-puntos[(i+1)%puntos.length][0]
+                    vector2 = puntos[i][1]-puntos[(i+1)%puntos.length][1]
                     mas180=false
                     if(vector1>0){
                         mas180 = true
@@ -1015,9 +1076,9 @@ function editar(datos, id) {
     document.getElementById("inclinacion_camara").innerHTML = datos.inclinacion
     document.getElementById("dmuerta").innerHTML = Math.floor(dmuerta)
     document.getElementById("dmax").innerHTML = Math.floor(dmax)
-    _nombre_camara.innerHTML = nombre_camara
-    dist.innerHTML= distancia_focal;
-    _precio.innerHTML = precio
+    _nombre_camara.innerHTML = datos.nombre_camara
+    dist.innerHTML= datos.distancia_focal;
+    _precio.innerHTML = datos.precio
     angl.innerHTML = Math.floor(angulo*180/Math.PI)
     if(window.sessionStorage.getItem(id)){
         let j = JSON.parse(window.sessionStorage.getItem(id))

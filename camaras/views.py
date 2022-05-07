@@ -6,6 +6,7 @@
 """
 import json
 import os
+import re
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -75,6 +76,14 @@ def registro(request):
             })
         except Usuario.DoesNotExist:
             pass
+        try:
+            Usuario.objects.get(email=request.POST['email'])
+            return render(request, "camaras/registro.html", {
+                "error_title": "El email introducido ya ha sido utilizado.",
+                "error_body": "Prueba a utilizar otra dirección de correo."
+            })
+        except Usuario.DoesNotExist:
+            pass
 
         if register_form.is_valid():
             if (register_form.cleaned_data["password"] !=
@@ -97,10 +106,9 @@ def registro(request):
         else:
             # Si el formulario no es valido
             return render(request, "camaras/registro.html", {
-                    "error_title": "Error desconocido",
-                    "error_body": "Comprueba que has completado el formulario \
-                                   correctamente.",
-                })
+                "error_title": "Todos los campos son obligatorios.",
+                "error_body": "Comprueba que has rellenado todos los campos."
+            })
     else:
         return render(request, "camaras/index.html", {
             "error_title": "Acceso incorrecto",
@@ -135,6 +143,9 @@ def login_view(request):
         login_form = LoginForm(data=request.POST)
         # Se obtienen usuario y contrasena introducidos
         username = login_form.data['usuario']
+        regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+        if re.fullmatch(regex, username):
+            username = Usuario.objects.get(email=username).username
         password = login_form.data['password']
         # Se comprueba que exista en la base de datos
         user = authenticate(username=username, password=password)
@@ -150,10 +161,9 @@ def login_view(request):
                     return redirect(reverse('camaras:index'))
         else:
             return render(request, "camaras/login.html", {
-                "error_title": "Usuario no encontrado",
-                "error_body": "El usuario introducido no se encuentra en \
-                            nuestra base de datos. Comprueba mayúsculas y \
-                            minúsculas."
+                "error_title": "Usuario o contraseña incorrectos.",
+                "error_body": "El nombre de usuario introducido o la contraseña\
+                    no son válidos. Comprueba que no haya errores."
             })
 
     return render(request, "camaras/login.html", context)
