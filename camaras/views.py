@@ -437,8 +437,8 @@ def editar(request, mapa_id):
         # en caso contrario, se calcula la media de sus coordenadas para
         # centrar el mapa
         if c.count() != 0:
-            centro = [sum(punto.x_coord for punto in c)/c.count(),
-                      sum(punto.y_coord for punto in c)/c.count()]
+            centro = {"x_coord": sum(punto.x_coord for punto in c)/c.count(),
+                      "y_coord": sum(punto.y_coord for punto in c)/c.count()}
         for e in c:
             try:
                 cam = Camara.objects.get(id=e.camara.id)
