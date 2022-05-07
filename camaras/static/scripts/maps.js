@@ -655,7 +655,6 @@ const map_init = ubicacion => {
     if(map_id>0 && window.localStorage.getItem("mapa_".concat(map_id))){
         let informacion_mapa = JSON.parse(window.localStorage.getItem("mapa_".concat(map_id)))
         centro = [informacion_mapa.centro.x_coord, informacion_mapa.centro.y_coord]
-        console.log(centro)
         error = true
     } else {
         centro = [-3.7031068, 40.4166275]
