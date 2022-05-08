@@ -599,7 +599,7 @@ function handleFiles() {
                     })
                 }
             }
-            centro = {"lng":c1/numCamaras, "lat": c2/numCamaras}
+            centro = {"x_coord":c1/numCamaras, "y_coord": c2/numCamaras}
             info = {
                 "centro": centro,
                 "camaras": camaras
