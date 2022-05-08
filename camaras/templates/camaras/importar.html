@@ -12,5 +12,7 @@
         <label for="inputfile" class="form-label">Seleccionar fichero:</label>
         <input class="form-control form-control-lg" id="inputfile" name="file" type="file"accept="application/JSON" onchange="handleFiles()" required/>
     </div>
-
+    <div id="error_importar" class="alert alert-danger" role="alert">
+        <strong>Error: </strong><span id="error_message_importar"></span>
+      </div>
 {% endblock %}

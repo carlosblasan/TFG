@@ -560,15 +560,23 @@ function handleFiles() {
     fileReader.readAsText(fileToLoad, "UTF-8");
     
     fileReader.onload = function(fileLoadedEvent){
-        var content = JSON.parse(fileLoadedEvent.target.result);
+        
         // Si el conjunto de claves solo contiene "posicion_" entonces se hace una llamada a 
         // la API para obtener datos adicionales sobre cada camara
-        for(i=0;i<Object.keys(content.content).length;i++){
-            if(Object.keys(content.content)[i].includes("posicion")){
-                contiene = true;
+        try{
+            var content = JSON.parse(fileLoadedEvent.target.result);
+            document.getElementById("error_importar").style.display = 'none'
+            document.getElementById("error_message_importar").innerHTML = ""
+            for(i=0;i<Object.keys(content.content).length;i++){
+                if(Object.keys(content.content)[i].includes("posicion")){
+                    contiene = true;
+                }
             }
+        } catch(error) {
+            document.getElementById("error_importar").style.display = 'block'
+            document.getElementById("error_message_importar").innerHTML = "Formato de fichero incorrecto."
+            return
         }
-
         if(contiene) {
             numCamaras = 0
             c1 = 0

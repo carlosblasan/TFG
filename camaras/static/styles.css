@@ -126,3 +126,7 @@ label {
   position: relative;
   padding-left: 30vw;
 }
+
+#error_importar {
+  display: none;
+}
