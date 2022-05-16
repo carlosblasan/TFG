@@ -48,7 +48,7 @@ let no_entrar = false
 /** Funcion que dado un punto (centro), un angulo en radianes, una distancia en km
  * y un numero de puntos (este ultimo parametro es opcional), dibuja el area sombreada
  * con centro la ubicacion de la camara
- *  Referencia: TODO: URL
+ *  Referencia: https://localcoder.org/drawing-a-circle-with-the-radius-in-miles-meters-with-mapbox-gl-js
  */
 var createGeoJSONCircle = function(center, angulo, radiusInKm, rotacion, points) {
     // Si no se especifican puntos, se ponen 64 por defecto
